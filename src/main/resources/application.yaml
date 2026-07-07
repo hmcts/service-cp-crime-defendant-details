@@ -1,24 +1,37 @@
-spring:
-  application:
-    name: service-UPDATE-TO-BE-NAME-OF-SERVICE
-
 server:
   port: ${SERVER_PORT:8082}
-
-azure:
-  application-insights:
-    instrumentation-key: ${rpe.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
+  shutdown: "graceful"
 
 management:
+  endpoint:
+    health:
+      show-details: "always"
+      probes:
+        enabled: true   # enables liveness / readiness groups
   endpoints:
     web:
       base-path: /actuator
       exposure:
         include: health, info, prometheus
-  endpoint:
-    health:
-      probes:
-        enabled: true   # enables liveness / readiness groups
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+
+spring:
+  config:
+    import: "optional:configtree:/mnt/secrets/rpe/"
+  application:
+    name: service-cp-crime-defendant-details
+  jackson:
+    default-property-inclusion: non_null
+  web:
+    resources:
+      add-mappings: false     # disable serving any static resources
+
+azure:
+  application-insights:
+    instrumentation-key: ${rpe.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
 logging:
   level:

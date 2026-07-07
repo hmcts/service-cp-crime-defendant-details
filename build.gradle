@@ -25,6 +25,10 @@ apply {
 // We MUST keep all dependencies in the build.gradle to allow dependabot to provide version updates
 // Sadly, dependabot does not track dependencies in the apply-from files
 dependencies {
+  // Api spec
+  implementation('uk.gov.hmcts.cp:api-cp-crime-defendant-details:1.0.0')
+  implementation('io.swagger.core.v3:swagger-annotations:2.2.52')
+
   // Java core
   implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
 
