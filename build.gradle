@@ -27,6 +27,7 @@ apply {
 dependencies {
   // Java core
   implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
+  implementation 'org.owasp.encoder:encoder:1.2.3'
 
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
@@ -40,7 +41,12 @@ dependencies {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
+  testImplementation 'org.wiremock:wiremock-standalone:3.13.2'
 
+  // Defendant details API contract (generated OpenAPI interface + models)
+  implementation 'uk.gov.hmcts.cp:api-cp-crime-defendant-details:1.0.0'
+  // Required at compile time for the generated contract's @Schema annotations (not resolved transitively)
+  implementation 'io.swagger.core.v3:swagger-annotations:2.2.52'
 
   // --- Observability / Actuator / OTEL / Prometheus ---
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
