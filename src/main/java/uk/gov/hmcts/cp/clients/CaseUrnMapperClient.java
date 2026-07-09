@@ -21,7 +21,7 @@ public class CaseUrnMapperClient {
         final String sanitizedCaseUrn = Encode.forJava(caseUrn);
         final String url = getCaseIdUrl(caseUrn);
         log.info("Getting caseId from {}", url);
-        CaseMapperResponse response = restClient.get()
+        final CaseMapperResponse response = restClient.get()
                 .uri(url)
                 .retrieve()
                 .body(CaseMapperResponse.class);
