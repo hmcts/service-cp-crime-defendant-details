@@ -27,6 +27,7 @@ apply {
 dependencies {
   // Java core
   implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
+  implementation 'uk.gov.hmcts.cp:api-cp-caseadmin-case-urn-mapper:1.1.1'
   implementation 'org.owasp.encoder:encoder:1.2.3'
 
   compileOnly 'org.projectlombok:lombok:1.18.46'
