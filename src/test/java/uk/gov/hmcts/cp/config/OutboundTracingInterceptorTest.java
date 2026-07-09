@@ -47,7 +47,7 @@ class OutboundTracingInterceptorTest {
     }
 
     @Test
-    void outbound_request_without_mdc_should_send_null_correlation_id() throws Exception {
+    void outbound_request_without_mdc_should_not_add_correlation_id_header() throws Exception {
         final HttpHeaders headers = new HttpHeaders();
         when(request.getHeaders()).thenReturn(headers);
         when(execution.execute(request, new byte[0])).thenReturn(clientHttpResponse);
