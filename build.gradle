@@ -28,7 +28,7 @@ dependencies {
   // Java core
   implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
   implementation 'uk.gov.hmcts.cp:api-cp-caseadmin-case-urn-mapper:1.1.1'
-  implementation 'org.owasp.encoder:encoder:1.2.3'
+  implementation 'org.owasp.encoder:encoder:1.4.0'
 
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
@@ -55,5 +55,5 @@ dependencies {
 
   // Security: pin transitive tomcat-embed-core to patched version (CVE-2026-41293, -43512, et al.)
   // Brought in transitively via spring-boot-starter-web; >=11.0.0-M1,<11.0.22 are vulnerable
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.23'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.24'
 }
