@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.cp.clients.CaseUrnMapperClient;
+import uk.gov.hmcts.cp.openapi.model.CaseMapperResponse;
 
 import java.util.UUID;
 
@@ -14,6 +15,8 @@ public class CaseUrnMapperService {
     private final CaseUrnMapperClient caseUrnMapperClient;
 
     public UUID getCaseId(final String caseUrn) {
-        return caseUrnMapperClient.getCaseId(caseUrn);
+        log.info("Fetching caseId for caseUrn:{}", caseUrn);
+        final CaseMapperResponse response = caseUrnMapperClient.getCaseMapping(caseUrn);
+        return response.getCaseId();
     }
 }

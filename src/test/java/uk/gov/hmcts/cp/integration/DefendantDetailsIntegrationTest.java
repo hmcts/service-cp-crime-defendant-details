@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-class DefendantDetailsControllerIntegrationTest extends IntegrationTestBase {
+class DefendantDetailsIntegrationTest extends IntegrationTestBase {
 
     String caseUrn = "20GD1234567";
     UUID caseId = UUID.randomUUID();
@@ -94,7 +94,7 @@ class DefendantDetailsControllerIntegrationTest extends IntegrationTestBase {
         ResponseDefinitionBuilder mockResponse = aResponse()
                 .withStatus(HTTP_OK)
                 .withHeader("Content-Type", "application/json")
-                .withBody(readResourceContents("cp_empty_response.json"));
+                .withBody(readFileContents("cp_empty_response.json"));
         log.info("Stubbing progression response url:{}", expectedProgressionUrl);
         stubFor(WireMock.get(urlEqualTo(expectedProgressionUrl)).willReturn(mockResponse));
 
@@ -112,7 +112,7 @@ class DefendantDetailsControllerIntegrationTest extends IntegrationTestBase {
         ResponseDefinitionBuilder mockResponse = aResponse()
                 .withStatus(HTTP_OK)
                 .withHeader("Content-Type", "application/json")
-                .withBody(readResourceContents("cp_response.json"));
+                .withBody(readFileContents("cp_response.json"));
 
         log.info("Stubbing progression response url:{}", expectedProgressionUrlWithMissingCaseId);
         stubFor(WireMock.get(urlEqualTo(expectedProgressionUrlWithMissingCaseId)).willReturn(mockResponse));
@@ -127,7 +127,7 @@ class DefendantDetailsControllerIntegrationTest extends IntegrationTestBase {
         stubMappingResponse(caseUrn, caseId);
         stubGetProgressionCaseResponse(caseId, cpResponseFile);
 
-        String expectedResponse = readResourceContents(expectedDefendantDetailsResponseFile);
+        String expectedResponse = readFileContents(expectedDefendantDetailsResponseFile);
         defendants_endpoint_and_verify_response(expectedResponse);
     }
 
@@ -157,13 +157,13 @@ class DefendantDetailsControllerIntegrationTest extends IntegrationTestBase {
         ResponseDefinitionBuilder mockResponse = aResponse()
                 .withStatus(HTTP_OK)
                 .withHeader("Content-Type", "application/json")
-                .withBody(readResourceContents(filename));
+                .withBody(readFileContents(filename));
         log.info("Stubbing progression url:{}", expectedUrl);
         stubFor(WireMock.get(urlEqualTo(expectedUrl)).willReturn(mockResponse));
     }
 
     @SneakyThrows
-    private String readResourceContents(final String resourceName) {
+    private String readFileContents(final String resourceName) {
         URL resource = getClass().getClassLoader().getResource(resourceName);
         return Files.readString(Path.of(resource.toURI()));
     }

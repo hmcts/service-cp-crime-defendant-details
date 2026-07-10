@@ -31,7 +31,7 @@ class DefendantDetailsControllerTest {
     private DefendantDetailsController defendantDetailsController;
 
     @Test
-    void getDefendantsByCase_ShouldReturnWithOkStatus() {
+    void getDefendantsByCase_should_return_OkStatus() {
         String caseUrn = "20GD1234567";
         UUID defendantId = UUID.randomUUID();
         UUID masterDefendantId = UUID.randomUUID();
@@ -52,7 +52,7 @@ class DefendantDetailsControllerTest {
     }
 
     @Test
-    void getDefendantsByCase_ShouldSanitizeCaseUrn() {
+    void getDefendantsByCase_should_handle_UnsanitizeCaseUrn() {
         String unsanitizedCaseUrn = "<script>alert('xss')</script>";
 
         when(defendantDetailsService.getDefendantsByCase(any(), any(), any())).thenReturn(List.of());

@@ -30,7 +30,7 @@ public class DefendantDetailsService {
         final UUID caseId = caseUrnMapperService.getCaseId(caseUrn);
         final ProgressionResponse progressionResponse = progressionClient.getProgressionResponse(caseId);
         final ProgressionResponse.ProsecutionCase prosecutionCase = progressionResponse == null ? null : progressionResponse.getProsecutionCase();
-        validateOrThrowError(prosecutionCase, HttpStatus.NOT_FOUND, "No case found for the supplied case URN");
+        validateOrThrowError(prosecutionCase, HttpStatus.NOT_FOUND, "No case found for the supplied case URN:" + caseUrn);
 
         return Optional.ofNullable(prosecutionCase.getDefendants())
                 .orElse(Collections.emptyList())
@@ -42,7 +42,7 @@ public class DefendantDetailsService {
                 .toList();
     }
 
-    private void validateOrThrowError(final Object obj, final HttpStatus status, final String errorMessage) {
+    private void validateOrThrowError(final ProgressionResponse.ProsecutionCase obj, final HttpStatus status, final String errorMessage) {
         if (ObjectUtils.isEmpty(obj)) {
             log.error(errorMessage);
             throw new ResponseStatusException(status, errorMessage);

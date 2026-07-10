@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.cp.clients.CaseUrnMapperClient;
+import uk.gov.hmcts.cp.openapi.model.CaseMapperResponse;
 
 import java.util.UUID;
 
@@ -24,13 +25,16 @@ class CaseUrnMapperServiceTest {
     private final UUID caseId = UUID.fromString("6c7fd04c-0dae-4c96-aaff-bc60f4e0d431");
     private final String caseUrn = "test-case-urn";
 
-
     @Test
     void shouldReturnCaseIdWhenResponseIsSuccessful() {
-        when(caseUrnMapperClient.getCaseId(caseUrn)).thenReturn(caseId);
-        UUID responseCaseId = caseUrnMapperService.getCaseId(caseUrn);
+        final CaseMapperResponse response = CaseMapperResponse.builder()
+                .caseId(caseId)
+                .build();
+        when(caseUrnMapperClient.getCaseMapping(caseUrn)).thenReturn(response);
+
+        final UUID responseCaseId = caseUrnMapperService.getCaseId(caseUrn);
 
         assertEquals(caseId, responseCaseId);
-        verify(caseUrnMapperClient).getCaseId(caseUrn);
+        verify(caseUrnMapperClient).getCaseMapping(caseUrn);
     }
 }
