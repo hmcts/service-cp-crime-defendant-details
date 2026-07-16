@@ -20,7 +20,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.cp.filters.TracingFilter.CORRELATION_ID_KEY;
+import static uk.gov.hmcts.cp.filters.http.TracingFilter.CORRELATION_ID_KEY;
 
 class TracingIntegrationTest extends IntegrationTestBase {
 

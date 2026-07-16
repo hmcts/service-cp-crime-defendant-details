@@ -11,6 +11,7 @@ import uk.gov.hmcts.cp.clients.ProgressionClient;
 import uk.gov.hmcts.cp.domain.ProgressionResponse;
 import uk.gov.hmcts.cp.domain.ProgressionResponse.ProsecutionCase;
 import uk.gov.hmcts.cp.domain.ProgressionResponse.ProsecutionCase.Defendant;
+import uk.gov.hmcts.cp.filters.service.DefendantFilter;
 import uk.gov.hmcts.cp.mappers.DefendantDetailsMapper;
 import uk.gov.hmcts.cp.openapi.model.DefendantDetails;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +32,8 @@ class DefendantDetailsServiceTest {
     private ProgressionClient progressionClient;
     @Mock
     private DefendantDetailsMapper defendantDetailsMapper;
+    @Mock
+    private DefendantFilter defendantFilter;
 
     @InjectMocks
     private DefendantDetailsService defendantDetailsService;
@@ -38,67 +42,32 @@ class DefendantDetailsServiceTest {
     private final UUID caseId = UUID.randomUUID();
 
     @Test
-    void should_return_all_defendants_when_no_filters_supplied() {
+    void should_delegate_to_defendantFilter_and_map_its_result() {
+        UUID masterDefendantId = UUID.randomUUID();
+        UUID defendantId = UUID.randomUUID();
         UUID defendantId1 = UUID.randomUUID();
         UUID defendantId2 = UUID.randomUUID();
         Defendant defendant1 = Defendant.builder().id(defendantId1).build();
         Defendant defendant2 = Defendant.builder().id(defendantId2).build();
-        stubCase(List.of(defendant1, defendant2));
+        List<Defendant> defendants = List.of(defendant1, defendant2);
+        stubCase(defendants);
+        when(defendantFilter.filter(defendants, masterDefendantId, defendantId)).thenReturn(defendants);
 
         DefendantDetails mapped1 = DefendantDetails.builder().defendantId(defendantId1).build();
         DefendantDetails mapped2 = DefendantDetails.builder().defendantId(defendantId2).build();
         when(defendantDetailsMapper.mapToDefendantDetails(defendant1)).thenReturn(mapped1);
         when(defendantDetailsMapper.mapToDefendantDetails(defendant2)).thenReturn(mapped2);
 
-        List<DefendantDetails> result = defendantDetailsService.getDefendantsByCase(caseUrn, null, null);
+        List<DefendantDetails> result = defendantDetailsService.getDefendantsByCase(caseUrn, masterDefendantId, defendantId);
 
         assertThat(result).containsExactly(mapped1, mapped2);
+        verify(defendantFilter).filter(defendants, masterDefendantId, defendantId);
     }
 
     @Test
-    void should_filter_by_defendantId_when_supplied() {
-        UUID defendantId1 = UUID.randomUUID();
-        UUID defendantId2 = UUID.randomUUID();
-        Defendant defendant1 = Defendant.builder().id(defendantId1).build();
-        Defendant defendant2 = Defendant.builder().id(defendantId2).build();
-        stubCase(List.of(defendant1, defendant2));
-
-        DefendantDetails mapped1 = DefendantDetails.builder().defendantId(defendantId1).build();
-        when(defendantDetailsMapper.mapToDefendantDetails(defendant1)).thenReturn(mapped1);
-
-        List<DefendantDetails> result = defendantDetailsService.getDefendantsByCase(caseUrn, null, defendantId1);
-
-        assertThat(result).containsExactly(mapped1);
-    }
-
-    @Test
-    void should_filter_by_masterDefendantId_when_supplied() {
-        UUID masterDefendantId1 = UUID.randomUUID();
-        UUID masterDefendantId2 = UUID.randomUUID();
-        Defendant defendant1 = Defendant.builder().id(UUID.randomUUID()).masterDefendantId(masterDefendantId1).build();
-        Defendant defendant2 = Defendant.builder().id(UUID.randomUUID()).masterDefendantId(masterDefendantId2).build();
-        stubCase(List.of(defendant1, defendant2));
-
-        DefendantDetails mapped2 = DefendantDetails.builder().masterDefendantId(masterDefendantId2).build();
-        when(defendantDetailsMapper.mapToDefendantDetails(defendant2)).thenReturn(mapped2);
-
-        List<DefendantDetails> result = defendantDetailsService.getDefendantsByCase(caseUrn, masterDefendantId2, null);
-
-        assertThat(result).containsExactly(mapped2);
-    }
-
-    @Test
-    void should_return_empty_list_when_no_defendant_matches_filter() {
-        stubCase(List.of(Defendant.builder().id(UUID.randomUUID()).build()));
-
-        List<DefendantDetails> result = defendantDetailsService.getDefendantsByCase(caseUrn, null, UUID.randomUUID());
-
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void should_return_empty_list_when_case_has_no_defendants() {
+    void should_return_empty_list_when_defendantFilter_returns_no_matches() {
         stubCase(List.of());
+        when(defendantFilter.filter(List.of(), null, null)).thenReturn(List.of());
 
         List<DefendantDetails> result = defendantDetailsService.getDefendantsByCase(caseUrn, null, null);
 

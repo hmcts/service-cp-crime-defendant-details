@@ -17,7 +17,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.cp.filters.TracingFilter.CORRELATION_ID_KEY;
+import static uk.gov.hmcts.cp.filters.http.TracingFilter.CORRELATION_ID_KEY;
 
 @ExtendWith(MockitoExtension.class)
 class OutboundTracingInterceptorTest {
