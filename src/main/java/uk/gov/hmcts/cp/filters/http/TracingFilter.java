@@ -1,4 +1,4 @@
-package uk.gov.hmcts.cp.filters;
+package uk.gov.hmcts.cp.filters.http;
 
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;

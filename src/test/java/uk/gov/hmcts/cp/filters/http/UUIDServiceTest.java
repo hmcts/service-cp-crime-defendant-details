@@ -1,4 +1,4 @@
-package uk.gov.hmcts.cp.filters;
+package uk.gov.hmcts.cp.filters.http;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

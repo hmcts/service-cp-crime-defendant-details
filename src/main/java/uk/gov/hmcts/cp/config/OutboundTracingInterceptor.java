@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-import static uk.gov.hmcts.cp.filters.TracingFilter.CORRELATION_ID_KEY;
+import static uk.gov.hmcts.cp.filters.http.TracingFilter.CORRELATION_ID_KEY;
 
 /**
  * Propagates the correlation ID from MDC onto every outbound REST call.

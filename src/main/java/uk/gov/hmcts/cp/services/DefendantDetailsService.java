@@ -8,13 +8,11 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.cp.clients.ProgressionClient;
 import uk.gov.hmcts.cp.domain.ProgressionResponse;
+import uk.gov.hmcts.cp.filters.service.DefendantFilter;
 import uk.gov.hmcts.cp.mappers.DefendantDetailsMapper;
 import uk.gov.hmcts.cp.openapi.model.DefendantDetails;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -25,6 +23,7 @@ public class DefendantDetailsService {
     private final CaseUrnMapperService caseUrnMapperService;
     private final ProgressionClient progressionClient;
     private final DefendantDetailsMapper defendantDetailsMapper;
+    private final DefendantFilter defendantFilter;
 
     public List<DefendantDetails> getDefendantsByCase(final String caseUrn, final UUID masterDefendantId, final UUID defendantId) {
         final UUID caseId = caseUrnMapperService.getCaseId(caseUrn);
@@ -32,12 +31,8 @@ public class DefendantDetailsService {
         final ProgressionResponse.ProsecutionCase prosecutionCase = progressionResponse == null ? null : progressionResponse.getProsecutionCase();
         validateOrThrowError(prosecutionCase, HttpStatus.NOT_FOUND, "No case found for the supplied case URN:" + caseUrn);
 
-        return Optional.ofNullable(prosecutionCase.getDefendants())
-                .orElse(Collections.emptyList())
+        return defendantFilter.filter(prosecutionCase.getDefendants(), masterDefendantId, defendantId)
                 .stream()
-                .filter(Objects::nonNull)
-                .filter(defendant -> masterDefendantId == null || masterDefendantId.equals(defendant.getMasterDefendantId()))
-                .filter(defendant -> defendantId == null || defendantId.equals(defendant.getId()))
                 .map(defendantDetailsMapper::mapToDefendantDetails)
                 .toList();
     }
