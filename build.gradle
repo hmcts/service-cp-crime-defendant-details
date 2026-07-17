@@ -20,14 +20,23 @@ apply {
   from("$rootDir/gradle/pmd.gradle")
   from("$rootDir/gradle/test.gradle")
   from("$rootDir/gradle/jar.gradle")
+  from("$rootDir/gradle/apispec-validation.gradle")
+}
+
+configurations {
+  apiSpec
+  implementation.extendsFrom apiSpec
 }
 
 // We MUST keep all dependencies in the build.gradle to allow dependabot to provide version updates
 // Sadly, dependabot does not track dependencies in the apply-from files
 dependencies {
+  // Api spec
+  apiSpec 'uk.gov.hmcts.cp:api-cp-caseadmin-case-urn-mapper:1.1.1'
+  apiSpec 'uk.gov.hmcts.cp:api-cp-crime-defendant-details:1.0.1'
+
   // Java core
   implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
-  implementation 'uk.gov.hmcts.cp:api-cp-caseadmin-case-urn-mapper:1.1.1'
   implementation 'org.owasp.encoder:encoder:1.2.3'
 
   compileOnly 'org.projectlombok:lombok:1.18.46'
@@ -44,8 +53,6 @@ dependencies {
   }
   testImplementation 'org.wiremock:wiremock-standalone:3.13.2'
 
-  // Defendant details API contract (generated OpenAPI interface + models)
-  implementation 'uk.gov.hmcts.cp:api-cp-crime-defendant-details:1.0.1'
   // Required at compile time for the generated contract's @Schema annotations (not resolved transitively)
   implementation 'io.swagger.core.v3:swagger-annotations:2.2.52'
 

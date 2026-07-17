@@ -9,7 +9,17 @@ on:
         required: true
       HMCTS_ADO_PAT:
         required: true
+      DEPLOYMENT_APP_ID:
+        required: true
+        description: "GitHub App ID for deployment"
+      DEPLOYMENT_APP_PRIVATE_KEY:
+        required: true
+        description: "GitHub App private key for deployment"
     inputs:
+      environment:
+        required: true
+        type: string
+        default: dev
       is_release:
         required: false
         type: boolean
@@ -23,11 +33,25 @@ on:
       trigger_deploy:
         required: true
         type: boolean
+      deploy_dev:
+        required: false
+        type: boolean
+        default: true
+      deploy_sit:
+        required: false
+        type: boolean
+        default: false
+      deploy_environment:
+        required: false
+        type: string
+        default: dev
 
 
 jobs:
   Artefact-Version:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
     outputs:
       artefact_version: ${{ inputs.is_release && steps.artefact.outputs.release_version || steps.artefact.outputs.draft_version }}
     steps:
@@ -47,6 +71,8 @@ jobs:
   Build:
     needs: [Artefact-Version]
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
     outputs:
       repo_name: ${{ steps.repo_vars.outputs.repo_name }}
       artefact_name: ${{ steps.repo_vars.outputs.artefact_name }}
@@ -59,6 +85,11 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: current
 
       - name: Gradle Build
         env:
@@ -83,6 +114,8 @@ jobs:
   Provider-Deploy:
     needs: [ Artefact-Version, Build ]
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@v7
@@ -128,6 +161,8 @@ jobs:
     needs: [ Provider-Deploy, Build, Artefact-Version ]
     if: ${{ inputs.trigger_docker }}
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v7
@@ -164,11 +199,14 @@ jobs:
     needs: [ Provider-Deploy, Build, Artefact-Version ]
     if: ${{ inputs.trigger_deploy }}
     runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.trigger.outputs.run_id }}
     steps:
       - name: Extract repo name
         run: echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
-      - name: Trigger ADO pipeline
+      - name: Trigger ADO pipeline 460
+        id: trigger
         uses: hmcts/trigger-ado-pipeline@v2
         with:
           pipeline_id: 460
@@ -181,4 +219,84 @@ jobs:
               "TARGET_REPOSITORY": "${{ github.repository }}",
               "agentDemand": "ubuntu-j25",
               "baseImage": "hmcts/apm-services:25-jre"
+            }
+
+  Wait-For-ACR-Push:
+    needs: [Deploy]
+    if: ${{ inputs.trigger_deploy }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for ADO pipeline 460
+        uses: hmcts/monitor-ado-pipeline@v1
+        with:
+          pipeline_id: 460
+          run_id: ${{ needs.Deploy.outputs.run_id }}
+          ado_pat: ${{ secrets.HMCTS_ADO_PAT }}
+          poll_interval: 30
+          timeout: 1800
+
+  deploy-dev:
+    needs: [Wait-For-ACR-Push, Artefact-Version, Build]
+    if: ${{ inputs.trigger_deploy && inputs.deploy_dev }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate date suffix
+        id: date
+        shell: bash
+        run: echo "suffix=_$(date -u +'%d%m%y')" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy via ADO pipeline
+        uses: hmcts/action-ado-deploy@v1
+        with:
+          service_name: ${{ needs.Build.outputs.repo_name }}
+          image_tag: ${{ needs.Artefact-Version.outputs.artefact_version }}
+          tag_suffix: ${{ steps.date.outputs.suffix }}
+          app_id: ${{ secrets.DEPLOYMENT_APP_ID }}
+          app_private_key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+          target_repository: hmcts/cp-vp-aks-deploy
+          target_branch: env/dev
+          values_file: vp-config/services_values.yml
+          pipeline_id: 434
+          ado_pat: ${{ secrets.HMCTS_ADO_PAT }}
+          ref_name: refs/heads/env/dev
+          wait: false
+          template_parameters: >
+            {
+              "env": "ste",
+              "cpbackendenv": "steccm14",
+              "stack": "steamp01",
+              "cluster": "K8-STE-CS01-CL01"
+            }
+
+  deploy-sit:
+    needs: [Wait-For-ACR-Push, Artefact-Version, Build]
+    if: ${{ inputs.trigger_deploy && inputs.deploy_sit }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate date suffix
+        id: date
+        shell: bash
+        run: echo "suffix=_$(date -u +'%d%m%y')" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to SIT via ADO pipeline
+        uses: hmcts/action-ado-deploy@v1
+        with:
+          service_name: ${{ needs.Build.outputs.repo_name }}
+          image_tag: ${{ needs.Artefact-Version.outputs.artefact_version }}
+          tag_suffix: ${{ steps.date.outputs.suffix }}
+          app_id: ${{ secrets.DEPLOYMENT_APP_ID }}
+          app_private_key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+          target_repository: hmcts/cp-vp-aks-deploy
+          target_branch: env/sit
+          values_file: vp-config/services_values.yml
+          pipeline_id: 434
+          ado_pat: ${{ secrets.HMCTS_ADO_PAT }}
+          ref_name: refs/heads/env/sit
+          wait: false
+          template_parameters: >
+            {
+              "env": "sit",
+              "cpbackendenv": "sitccm01",
+              "stack": "sitamp01",
+              "cluster": "K8-SIT-CS01-CL02"
             }
