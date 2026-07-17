@@ -116,7 +116,7 @@ class DefendantDetailsIntegrationTest extends IntegrationTestBase {
         ResponseDefinitionBuilder mockResponse = aResponse()
                 .withStatus(HTTP_OK)
                 .withHeader("Content-Type", "application/json")
-                .withBody(readFileContents("cp_empty_response.json"));
+                .withBody("{}");
         log.info("Stubbing progression response url:{}", expectedProgressionUrl);
         stubFor(WireMock.get(urlEqualTo(expectedProgressionUrl)).willReturn(mockResponse));
 
