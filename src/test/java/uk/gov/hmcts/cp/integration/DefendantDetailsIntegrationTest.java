@@ -10,7 +10,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.ResultActions;
 
 import java.net.URL;
 import java.nio.file.Files;
@@ -146,85 +145,116 @@ class DefendantDetailsIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @SneakyThrows
     void defendants_with_distinct_masterDefendantIds_all_returned() {
-        getDefendants("cp_defendants_before_cross_case_link.json", CASE_URN_DISTINCT_MASTER_IDS, CASE_ID_DISTINCT_MASTER_IDS)
-                .andExpect(status().isOk())
-                .andExpect(content().string(readFileContents("expected_defendants_distinct_master_ids.json")));
+        stub_cp_response_and_verify_expected_defendant_details_response(
+                "cp_defendants_before_cross_case_link.json",
+                "expected_defendants_distinct_master_ids.json",
+                CASE_URN_DISTINCT_MASTER_IDS,
+                CASE_ID_DISTINCT_MASTER_IDS);
     }
 
     @Test
-    @SneakyThrows
-    void unmatched_defendant_returns_empty_when_filtered_by_unrelated_masterDefendantId() {
-        getDefendantsByMaster("cp_defendant_partial_match.json", UNRELATED_MASTER_DEF_ID, CASE_URN_PARTIAL_MATCH, CASE_ID_PARTIAL_MATCH)
-                .andExpect(status().isOk())
-                .andExpect(content().string("[]"));
-    }
-
-    @Test
-    @SneakyThrows
     void unmatched_defendant_has_own_id_as_masterDefendantId() {
-        getDefendants("cp_defendant_partial_match.json", CASE_URN_PARTIAL_MATCH, CASE_ID_PARTIAL_MATCH)
-                .andExpect(status().isOk())
-                .andExpect(content().string(readFileContents("expected_defendant_partial_match.json")));
+        stub_cp_response_and_verify_expected_defendant_details_response(
+                "cp_defendant_partial_match.json",
+                "expected_defendant_partial_match.json",
+                CASE_URN_PARTIAL_MATCH,
+                CASE_ID_PARTIAL_MATCH);
     }
 
     @Test
-    @SneakyThrows
+    void unmatched_defendant_returns_empty_when_filtered_by_unrelated_masterDefendantId() {
+        stubMappingResponse(CASE_URN_PARTIAL_MATCH, CASE_ID_PARTIAL_MATCH);
+        stubGetProgressionCaseResponse(CASE_ID_PARTIAL_MATCH, "cp_defendant_partial_match.json");
+        defendants_endpoint_and_verify_response("[]", CASE_URN_PARTIAL_MATCH, UNRELATED_MASTER_DEF_ID);
+    }
+
+    @Test
     void masterDefendantId_filter_returns_all_matching_defendants() {
-        getDefendantsByMaster("cp_defendants_cross_case_matched.json", SHARED_MASTER_DEF_ID, CASE_URN_SHARED_MASTER_ID, CASE_ID_SHARED_MASTER_ID)
-                .andExpect(status().isOk())
-                .andExpect(content().string(readFileContents("expected_defendants_shared_master_id.json")));
+        stub_cp_response_and_verify_expected_defendant_details_response(
+                "cp_defendants_cross_case_matched.json",
+                "expected_defendants_shared_master_id.json",
+                CASE_URN_SHARED_MASTER_ID,
+                CASE_ID_SHARED_MASTER_ID,
+                SHARED_MASTER_DEF_ID);
     }
 
     @Test
-    @SneakyThrows
     void defendantId_filter_returns_single_match_when_masterDefendantId_is_shared() {
-        getDefendantsById("cp_defendants_cross_case_matched.json", DEF_ID_WITH_SHARED_MASTER_DEF_ID, CASE_URN_SHARED_MASTER_ID, CASE_ID_SHARED_MASTER_ID)
-                .andExpect(status().isOk())
-                .andExpect(content().string(readFileContents("expected_defendant_defendantId_filter.json")));
+        stub_cp_response_and_verify_expected_defendant_details_response_by_defendant_id(
+                "cp_defendants_cross_case_matched.json",
+                "expected_defendant_defendantId_filter.json",
+                CASE_URN_SHARED_MASTER_ID,
+                CASE_ID_SHARED_MASTER_ID,
+                DEF_ID_WITH_SHARED_MASTER_DEF_ID);
     }
 
-    @SneakyThrows
-    private ResultActions getDefendants(String fixture, String caseUrn, UUID caseId) {
-        stubMappingResponse(caseUrn, caseId);
-        stubGetProgressionCaseResponse(caseId, fixture);
-        return mockMvc.perform(get("/defendants/cases/{caseUrn}", caseUrn)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print());
-    }
+    // --- helpers ---
 
-    @SneakyThrows
-    private ResultActions getDefendantsByMaster(String fixture, UUID masterDefendantId, String caseUrn, UUID caseId) {
-        stubMappingResponse(caseUrn, caseId);
-        stubGetProgressionCaseResponse(caseId, fixture);
-        return mockMvc.perform(get("/defendants/cases/{caseUrn}", caseUrn)
-                        .param("masterDefendantId", masterDefendantId.toString())
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print());
-    }
-
-    @SneakyThrows
-    private ResultActions getDefendantsById(String fixture, UUID defendantId, String caseUrn, UUID caseId) {
-        stubMappingResponse(caseUrn, caseId);
-        stubGetProgressionCaseResponse(caseId, fixture);
-        return mockMvc.perform(get("/defendants/cases/{caseUrn}", caseUrn)
-                        .param("defendantId", defendantId.toString())
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print());
-    }
-
-    private void stub_cp_response_and_verify_expected_defendant_details_response(String cpResponseFile, String expectedDefendantDetailsResponseFile) {
+    private void stub_cp_response_and_verify_expected_defendant_details_response(
+            String cpResponseFile, String expectedDefendantDetailsResponseFile) {
         stubMappingResponse(caseUrn, caseId);
         stubGetProgressionCaseResponse(caseId, cpResponseFile);
+        defendants_endpoint_and_verify_response(readFileContents(expectedDefendantDetailsResponseFile));
+    }
 
-        String expectedResponse = readFileContents(expectedDefendantDetailsResponseFile);
-        defendants_endpoint_and_verify_response(expectedResponse);
+    private void stub_cp_response_and_verify_expected_defendant_details_response(
+            String cpResponseFile, String expectedFile, String caseUrn, UUID caseId) {
+        stubMappingResponse(caseUrn, caseId);
+        stubGetProgressionCaseResponse(caseId, cpResponseFile);
+        defendants_endpoint_and_verify_response(readFileContents(expectedFile), caseUrn);
+    }
+
+    private void stub_cp_response_and_verify_expected_defendant_details_response(
+            String cpResponseFile, String expectedFile, String caseUrn, UUID caseId, UUID masterDefendantId) {
+        stubMappingResponse(caseUrn, caseId);
+        stubGetProgressionCaseResponse(caseId, cpResponseFile);
+        defendants_endpoint_and_verify_response(readFileContents(expectedFile), caseUrn, masterDefendantId);
+    }
+
+    private void stub_cp_response_and_verify_expected_defendant_details_response_by_defendant_id(
+            String cpResponseFile, String expectedFile, String caseUrn, UUID caseId, UUID defendantId) {
+        stubMappingResponse(caseUrn, caseId);
+        stubGetProgressionCaseResponse(caseId, cpResponseFile);
+        defendants_endpoint_and_verify_response_by_defendant_id(readFileContents(expectedFile), caseUrn, defendantId);
     }
 
     @SneakyThrows
     private void defendants_endpoint_and_verify_response(String expectedResponse) {
         mockMvc.perform(get("/defendants/cases/{case_urn}", caseUrn)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(expectedResponse))
+                .andReturn();
+    }
+
+    @SneakyThrows
+    private void defendants_endpoint_and_verify_response(String expectedResponse, String caseUrn) {
+        mockMvc.perform(get("/defendants/cases/{case_urn}", caseUrn)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(expectedResponse))
+                .andReturn();
+    }
+
+    @SneakyThrows
+    private void defendants_endpoint_and_verify_response(String expectedResponse, String caseUrn, UUID masterDefendantId) {
+        mockMvc.perform(get("/defendants/cases/{case_urn}", caseUrn)
+                        .param("masterDefendantId", masterDefendantId.toString())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(expectedResponse))
+                .andReturn();
+    }
+
+    @SneakyThrows
+    private void defendants_endpoint_and_verify_response_by_defendant_id(
+            String expectedResponse, String caseUrn, UUID defendantId) {
+        mockMvc.perform(get("/defendants/cases/{case_urn}", caseUrn)
+                        .param("defendantId", defendantId.toString())
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
