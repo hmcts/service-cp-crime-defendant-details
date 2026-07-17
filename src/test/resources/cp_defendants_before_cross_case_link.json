@@ -1,0 +1,332 @@
+{
+    "prosecutionCase": {
+        "cpsOrganisation": "A30AB00",
+        "defendants": [
+            {
+                "courtProceedingsInitiated": "2026-07-17T11:10:55.874Z",
+                "id": "4b461ca7-f01a-4087-9ec3-0650ee6465aa",
+                "initiationCode": "C",
+                "masterDefendantId": "4b461ca7-f01a-4087-9ec3-0650ee6465aa",
+                "offences": [
+                    {
+                        "arrestDate": "2022-12-14",
+                        "chargeDate": "2022-12-15",
+                        "count": 0,
+                        "endorsableFlag": false,
+                        "id": "1800e13c-7d25-44e8-9b56-b7df2d5c87dc",
+                        "listingNumber": 1,
+                        "maxPenalty": "Indictable only",
+                        "modeOfTrial": "Indictable",
+                        "offenceCode": "OF61102C",
+                        "offenceDateCode": 1,
+                        "offenceDefinitionId": "3acf5ee8-6ba0-3b95-8c80-4a4b7dc84d7c",
+                        "offenceLegislation": "Contrary to sections 1,1A and 3 of the Criminal Law Act 1977.",
+                        "offenceLegislationWelsh": "Yn groes i adran 1, 1A a 3 Deddf Cyfraith Trosedd 1977.",
+                        "offenceTitle": "Conspire to assault a person thereby occasioning them actual bodily harm",
+                        "offenceTitleWelsh": "Cynllwynio i ymosod ar unigolyn a thrwy hynny beri gwir niwed corfforol iddynt",
+                        "orderIndex": 1,
+                        "startDate": "2022-12-12",
+                        "wording": "Frederic Lang at Amelie Courts, conspired together with Keara Keeling to assault Debbie Reynolds, thereby occasioning actual bodily harm"
+                    }
+                ],
+                "personDefendant": {
+                    "arrestSummonsNumber": "DEF011264111",
+                    "bailStatus": {
+                        "code": "C",
+                        "description": "Custody",
+                        "id": "12e69486-4d01-3403-a50a-7419ca040635"
+                    },
+                    "driverNumber": "VANFL002222OW9PH",
+                    "personDetails": {
+                        "address": {
+                            "address1": "21",
+                            "address2": "Furnburry Park Road",
+                            "address3": "London",
+                            "postcode": "SW11 3TQ"
+                        },
+                        "contact": {
+                            "home": "015325443756"
+                        },
+                        "dateOfBirth": "2000-02-18",
+                        "documentationLanguageNeeds": "ENGLISH",
+                        "ethnicity": {
+                            "observedEthnicityCode": "1",
+                            "observedEthnicityDescription": "White",
+                            "observedEthnicityId": "c4ca4238-a0b9-3382-8dcc-509a6f75849b",
+                            "selfDefinedEthnicityCode": "W1",
+                            "selfDefinedEthnicityDescription": "British",
+                            "selfDefinedEthnicityId": "c4ca4238-a0b9-3382-8dcc-509a6f75849b"
+                        },
+                        "firstName": "Frederic",
+                        "gender": "MALE",
+                        "hearingLanguageNeeds": "ENGLISH",
+                        "lastName": "Lang",
+                        "occupation": "Accountant",
+                        "occupationCode": "2201",
+                        "title": "MR"
+                    },
+                    "policeBailStatus": {
+                        "code": "C",
+                        "description": "Custody",
+                        "id": "12e69486-4d01-3403-a50a-7419ca040635"
+                    }
+                },
+                "pncId": "8888.1264111",
+                "prosecutionAuthorityReference": "DEF011264111",
+                "prosecutionCaseId": "2ad1f637-25c9-4ffe-a60d-a02468345ffd"
+            },
+            {
+                "courtProceedingsInitiated": "2026-07-17T11:10:55.874Z",
+                "id": "01e89ee1-0cca-45ef-995a-5b6047b733d2",
+                "initiationCode": "C",
+                "masterDefendantId": "01e89ee1-0cca-45ef-995a-5b6047b733d2",
+                "offences": [
+                    {
+                        "arrestDate": "2022-12-14",
+                        "chargeDate": "2022-12-15",
+                        "count": 0,
+                        "endorsableFlag": false,
+                        "id": "3634d5d6-da8b-49d5-8853-d4eb0c857418",
+                        "listingNumber": 1,
+                        "offenceCode": "TH68025A",
+                        "offenceDateCode": 1,
+                        "offenceDefinitionId": "14d0b0fc-3c5c-3eb3-880a-a46556d365eb",
+                        "offenceLegislation": "",
+                        "offenceTitle": "Attempted assault with intent to rob",
+                        "orderIndex": 1,
+                        "startDate": "2022-12-12",
+                        "wording": "On TEST  at  TEST  used or threatened unlawful violence towards another and your conduct was such as would cause a person of reasonable firmness present at the scene to fear for his personal safety. Contrary to section 3(1) and (7) of the Public Order Act 1986."
+                    }
+                ],
+                "personDefendant": {
+                    "arrestSummonsNumber": "DEF021264111",
+                    "bailStatus": {
+                        "code": "C",
+                        "description": "Custody",
+                        "id": "12e69486-4d01-3403-a50a-7419ca040635"
+                    },
+                    "driverNumber": "VANFL002222OW9PA",
+                    "personDetails": {
+                        "address": {
+                            "address1": "14",
+                            "address2": "North Westbridge Street",
+                            "address3": "London",
+                            "postcode": "SW11 2TQ"
+                        },
+                        "contact": {
+                            "home": "020824653791"
+                        },
+                        "dateOfBirth": "2000-03-24",
+                        "documentationLanguageNeeds": "ENGLISH",
+                        "ethnicity": {
+                            "observedEthnicityCode": "1",
+                            "observedEthnicityDescription": "White",
+                            "observedEthnicityId": "c4ca4238-a0b9-3382-8dcc-509a6f75849b",
+                            "selfDefinedEthnicityCode": "W1",
+                            "selfDefinedEthnicityDescription": "British",
+                            "selfDefinedEthnicityId": "c4ca4238-a0b9-3382-8dcc-509a6f75849b"
+                        },
+                        "firstName": "Keara",
+                        "gender": "MALE",
+                        "hearingLanguageNeeds": "ENGLISH",
+                        "lastName": "Lang",
+                        "occupation": "Accountant",
+                        "occupationCode": "2201",
+                        "title": "MR"
+                    },
+                    "policeBailStatus": {
+                        "code": "C",
+                        "description": "Custody",
+                        "id": "12e69486-4d01-3403-a50a-7419ca040635"
+                    }
+                },
+                "pncId": "8888.1264111",
+                "prosecutionAuthorityReference": "DEF021264111",
+                "prosecutionCaseId": "2ad1f637-25c9-4ffe-a60d-a02468345ffd"
+            }
+        ],
+        "id": "2ad1f637-25c9-4ffe-a60d-a02468345ffd",
+        "initiationCode": "C",
+        "originatingOrganisation": "0450000",
+        "prosecutionCaseIdentifier": {
+            "address": {
+                "address1": "Surrey Police",
+                "address2": "Mount Browne",
+                "address3": "Sandy Lane",
+                "address4": "Guildford",
+                "postcode": "GU3 1HG"
+            },
+            "contact": {
+                "primaryEmail": "mail_data_bureau_res@surrey.police.uk"
+            },
+            "majorCreditorCode": "PO45",
+            "prosecutionAuthorityCode": "SURRPF",
+            "prosecutionAuthorityId": "764bff92-a135-34cb-b858-8bb6b4b66301",
+            "prosecutionAuthorityName": "Surrey Police",
+            "prosecutionAuthorityOUCode": "0450000",
+            "caseURN": "28DI1264111"
+        },
+        "caseStatus": "ACTIVE"
+    },
+    "hearingsAtAGlance": {
+        "courtApplications": [],
+        "defendantHearings": [
+            {
+                "defendantId": "4b461ca7-f01a-4087-9ec3-0650ee6465aa",
+                "defendantName": "Frederic Lang",
+                "hearingIds": [
+                    "3501241b-40da-41f1-be01-e18ca1e68b3c"
+                ],
+                "masterDefendantId": "4b461ca7-f01a-4087-9ec3-0650ee6465aa"
+            },
+            {
+                "defendantId": "01e89ee1-0cca-45ef-995a-5b6047b733d2",
+                "defendantName": "Keara Lang",
+                "hearingIds": [
+                    "3501241b-40da-41f1-be01-e18ca1e68b3c"
+                ],
+                "masterDefendantId": "01e89ee1-0cca-45ef-995a-5b6047b733d2"
+            }
+        ],
+        "hearings": [
+            {
+                "courtCentre": {
+                    "address": {
+                        "address1": "Norwich Place",
+                        "address2": "Bexleyheath",
+                        "address3": "Kent",
+                        "address4": "",
+                        "address5": "",
+                        "postcode": "DA6 7ND"
+                    },
+                    "code": "B01BH00",
+                    "courtHearingLocation": "B01BH01",
+                    "id": "7e967376-eacf-4fca-9b30-21b0c5aad427",
+                    "lja": {
+                        "ljaCode": "2575",
+                        "ljaName": "South East London Magistrates' Court"
+                    },
+                    "name": "Bexley Magistrates' Court",
+                    "roomId": "8e912353-3b5d-36c3-953e-ad3b94b19de3",
+                    "roomName": "Courtroom 01"
+                },
+                "defendants": [
+                    {
+                        "address": {
+                            "address1": "21",
+                            "address2": "Furnburry Park Road",
+                            "address3": "London",
+                            "postcode": "SW11 3TQ"
+                        },
+                        "age": "26",
+                        "courtApplications": [],
+                        "dateOfBirth": "2000-02-18",
+                        "defenceOrganisation": {
+                            "defenceCounsels": [],
+                            "defendantId": "4b461ca7-f01a-4087-9ec3-0650ee6465aa"
+                        },
+                        "id": "4b461ca7-f01a-4087-9ec3-0650ee6465aa",
+                        "judicialResults": [],
+                        "masterDefendantId": "4b461ca7-f01a-4087-9ec3-0650ee6465aa",
+                        "name": "Frederic Lang",
+                        "offences": [
+                            {
+                                "count": 0,
+                                "id": "1800e13c-7d25-44e8-9b56-b7df2d5c87dc",
+                                "judicialResults": [],
+                                "offenceCode": "OF61102C",
+                                "offenceDefinitionId": "3acf5ee8-6ba0-3b95-8c80-4a4b7dc84d7c",
+                                "offenceLegislation": "Contrary to sections 1,1A and 3 of the Criminal Law Act 1977.",
+                                "offenceLegislationWelsh": "Yn groes i adran 1, 1A a 3 Deddf Cyfraith Trosedd 1977.",
+                                "offenceTitle": "Conspire to assault a person thereby occasioning them actual bodily harm",
+                                "offenceTitleWelsh": "Cynllwynio i ymosod ar unigolyn a thrwy hynny beri gwir niwed corfforol iddynt",
+                                "orderIndex": 1,
+                                "pleas": [],
+                                "startDate": "2022-12-12",
+                                "verdicts": [],
+                                "wording": "Frederic Lang at Amelie Courts, conspired together with Keara Keeling to assault Debbie Reynolds, thereby occasioning actual bodily harm"
+                            }
+                        ]
+                    },
+                    {
+                        "address": {
+                            "address1": "14",
+                            "address2": "North Westbridge Street",
+                            "address3": "London",
+                            "postcode": "SW11 2TQ"
+                        },
+                        "age": "26",
+                        "courtApplications": [],
+                        "dateOfBirth": "2000-03-24",
+                        "defenceOrganisation": {
+                            "defenceCounsels": [],
+                            "defendantId": "01e89ee1-0cca-45ef-995a-5b6047b733d2"
+                        },
+                        "id": "01e89ee1-0cca-45ef-995a-5b6047b733d2",
+                        "judicialResults": [],
+                        "masterDefendantId": "01e89ee1-0cca-45ef-995a-5b6047b733d2",
+                        "name": "Keara Lang",
+                        "offences": [
+                            {
+                                "count": 0,
+                                "id": "3634d5d6-da8b-49d5-8853-d4eb0c857418",
+                                "judicialResults": [],
+                                "offenceCode": "TH68025A",
+                                "offenceDefinitionId": "14d0b0fc-3c5c-3eb3-880a-a46556d365eb",
+                                "offenceLegislation": "",
+                                "offenceTitle": "Attempted assault with intent to rob",
+                                "orderIndex": 1,
+                                "pleas": [],
+                                "startDate": "2022-12-12",
+                                "verdicts": [],
+                                "wording": "On TEST  at  TEST  used or threatened unlawful violence towards another and your conduct was such as would cause a person of reasonable firmness present at the scene to fear for his personal safety. Contrary to section 3(1) and (7) of the Public Order Act 1986."
+                            }
+                        ]
+                    }
+                ],
+                "hasResultAmended": false,
+                "hearingDays": [
+                    {
+                        "courtCentreId": "7e967376-eacf-4fca-9b30-21b0c5aad427",
+                        "courtRoomId": "8e912353-3b5d-36c3-953e-ad3b94b19de3",
+                        "isCancelled": false,
+                        "listedDurationMinutes": 20,
+                        "listingSequence": 0,
+                        "sittingDay": "2026-07-17T10:30:00.000Z"
+                    }
+                ],
+                "hearingListingStatus": "HEARING_INITIALISED",
+                "id": "3501241b-40da-41f1-be01-e18ca1e68b3c",
+                "isApplicationHearing": false,
+                "jurisdictionType": "MAGISTRATES",
+                "type": {
+                    "description": "First hearing",
+                    "id": "4a0e892d-c0c5-3c51-95b8-704d8c781776"
+                }
+            }
+        ],
+        "id": "2ad1f637-25c9-4ffe-a60d-a02468345ffd",
+        "latestHearingJurisdictionType": "MAGISTRATES",
+        "prosecutionCaseIdentifier": {
+            "address": {
+                "address1": "Surrey Police",
+                "address2": "Mount Browne",
+                "address3": "Sandy Lane",
+                "address4": "Guildford",
+                "postcode": "GU3 1HG"
+            },
+            "contact": {
+                "primaryEmail": "mail_data_bureau_res@surrey.police.uk"
+            },
+            "majorCreditorCode": "PO45",
+            "prosecutionAuthorityCode": "SURRPF",
+            "prosecutionAuthorityId": "764bff92-a135-34cb-b858-8bb6b4b66301",
+            "prosecutionAuthorityName": "Surrey Police",
+            "prosecutionAuthorityOUCode": "0450000",
+            "caseURN": "28DI1264111"
+        }
+    },
+    "appealsLodgedInfo": {
+        "appealsLodged": false
+    }
+}
