@@ -1,0 +1,257 @@
+{
+    "prosecutionCase": {
+        "cpsOrganisation": "A30AB00",
+        "defendants": [
+            {
+                "courtProceedingsInitiated": "2026-07-13T14:50:53.814Z",
+                "id": "8cd13f44-c951-446b-a3c8-adc597e4725d",
+                "masterDefendantId": "8cd13f44-c951-446b-a3c8-adc597e4725d",
+                "offences": [
+                    {
+                        "arrestDate": "2022-12-14",
+                        "chargeDate": "2022-12-15",
+                        "count": 0,
+                        "endorsableFlag": false,
+                        "id": "305c9c0f-cb18-45b7-99d6-dbd7c80659f8",
+                        "listingNumber": 1,
+                        "maxPenalty": "S:L3",
+                        "modeOfTrial": "Summary",
+                        "offenceCode": "CA03012",
+                        "offenceDateCode": 1,
+                        "offenceDefinitionId": "6588ffee-89ec-36a2-ab90-a54177cbda97",
+                        "offenceLegislation": "Contrary to section 363(3)(b) and (4) of the Communications Act 2003.",
+                        "offenceLegislationWelsh": "Yn groes i adran 363(3)(b) a (4) Deddf Cyfathrebu 2003.",
+                        "offenceTitle": "Possess / control TV set with intent another use install without a licence",
+                        "offenceTitleWelsh": "Meddu ar/mewn rheolaeth set deledu gan fwriadu i unigolyn arall ei ddefnyddio/osod heb drwydded",
+                        "orderIndex": 1,
+                        "startDate": "2022-12-12",
+                        "wording": "Toby Ritchie have set up a TV cable without a valid license."
+                    }
+                ],
+                "personDefendant": {
+                    "arrestSummonsNumber": "DEF014469859",
+                    "bailStatus": {
+                        "code": "C",
+                        "description": "Custody",
+                        "id": "12e69486-4d01-3403-a50a-7419ca040635"
+                    },
+                    "personDetails": {
+                        "address": {
+                            "address1": "21",
+                            "address2": "Furnburry Park Road",
+                            "address3": "London",
+                            "postcode": "SW11 3TQ"
+                        },
+                        "contact": {
+                            "home": "015325443756",
+                            "primaryEmail": "testdef012@example.com"
+                        },
+                        "dateOfBirth": "2007-02-18",
+                        "documentationLanguageNeeds": "ENGLISH",
+                        "ethnicity": {
+                            "observedEthnicityCode": "1",
+                            "observedEthnicityDescription": "White",
+                            "observedEthnicityId": "c4ca4238-a0b9-3382-8dcc-509a6f75849b",
+                            "selfDefinedEthnicityCode": "W1",
+                            "selfDefinedEthnicityDescription": "British",
+                            "selfDefinedEthnicityId": "c4ca4238-a0b9-3382-8dcc-509a6f75849b"
+                        },
+                        "firstName": "Toby",
+                        "gender": "MALE",
+                        "hearingLanguageNeeds": "ENGLISH",
+                        "lastName": "Ritchie",
+                        "occupation": "Accountant",
+                        "occupationCode": "2201",
+                        "title": "MR"
+                    },
+                    "policeBailStatus": {
+                        "code": "C",
+                        "description": "Custody",
+                        "id": "12e69486-4d01-3403-a50a-7419ca040635"
+                    }
+                },
+                "pncId": "8888.34522222",
+                "prosecutionAuthorityReference": "DEF014469859",
+                "prosecutionCaseId": "2f354689-fdda-472d-82a1-7b2ebdb0ac48"
+            }
+        ],
+        "id": "2f354689-fdda-472d-82a1-7b2ebdb0ac48",
+        "initiationCode": "C",
+        "originatingOrganisation": "0450000",
+        "prosecutionCaseIdentifier": {
+            "address": {
+                "address1": "Surrey Police",
+                "address2": "Mount Browne",
+                "address3": "Sandy Lane",
+                "address4": "Guildford",
+                "postcode": "GU3 1HG"
+            },
+            "contact": {
+                "primaryEmail": "mail_data_bureau_res@surrey.police.uk"
+            },
+            "majorCreditorCode": "PO45",
+            "prosecutionAuthorityCode": "SURRPF",
+            "prosecutionAuthorityId": "764bff92-a135-34cb-b858-8bb6b4b66301",
+            "prosecutionAuthorityName": "Surrey Police",
+            "prosecutionAuthorityOUCode": "0450000",
+            "caseURN": "28DI4469859"
+        },
+        "caseStatus": "ACTIVE"
+    },
+    "hearingsAtAGlance": {
+        "courtApplications": [],
+        "defendantHearings": [
+            {
+                "defendantId": "8cd13f44-c951-446b-a3c8-adc597e4725d",
+                "defendantName": "Toby Ritchie",
+                "hearingIds": [
+                    "90faadda-e04d-4641-bbd0-26a3bd25328d"
+                ],
+                "masterDefendantId": "8cd13f44-c951-446b-a3c8-adc597e4725d"
+            }
+        ],
+        "hearings": [
+            {
+                "courtCentre": {
+                    "address": {
+                        "address1": "Norwich Place",
+                        "address2": "Bexleyheath",
+                        "address3": "Kent",
+                        "address4": "",
+                        "address5": "",
+                        "postcode": "DA6 7ND"
+                    },
+                    "code": "B01BH00",
+                    "courtHearingLocation": "B01BH01",
+                    "id": "7e967376-eacf-4fca-9b30-21b0c5aad427",
+                    "lja": {
+                        "ljaCode": "2575",
+                        "ljaName": "South East London Magistrates' Court"
+                    },
+                    "name": "Bexley Magistrates' Court",
+                    "roomId": "8e912353-3b5d-36c3-953e-ad3b94b19de3",
+                    "roomName": "Courtroom 01"
+                },
+                "defendants": [
+                    {
+                        "address": {
+                            "address1": "21",
+                            "address2": "Furnburry Park Road",
+                            "address3": "London",
+                            "postcode": "SW11 3TQ"
+                        },
+                        "age": "19",
+                        "courtApplications": [],
+                        "dateOfBirth": "2007-02-18",
+                        "defenceOrganisation": {
+                            "defenceCounsels": [],
+                            "defendantId": "8cd13f44-c951-446b-a3c8-adc597e4725d"
+                        },
+                        "id": "8cd13f44-c951-446b-a3c8-adc597e4725d",
+                        "judicialResults": [],
+                        "masterDefendantId": "8cd13f44-c951-446b-a3c8-adc597e4725d",
+                        "name": "Toby Ritchie",
+                        "offences": [
+                            {
+                                "count": 0,
+                                "id": "305c9c0f-cb18-45b7-99d6-dbd7c80659f8",
+                                "judicialResults": [],
+                                "offenceCode": "CA03012",
+                                "offenceDefinitionId": "6588ffee-89ec-36a2-ab90-a54177cbda97",
+                                "offenceLegislation": "Contrary to section 363(3)(b) and (4) of the Communications Act 2003.",
+                                "offenceLegislationWelsh": "Yn groes i adran 363(3)(b) a (4) Deddf Cyfathrebu 2003.",
+                                "offenceTitle": "Possess / control TV set with intent another use install without a licence",
+                                "offenceTitleWelsh": "Meddu ar/mewn rheolaeth set deledu gan fwriadu i unigolyn arall ei ddefnyddio/osod heb drwydded",
+                                "orderIndex": 1,
+                                "pleas": [],
+                                "startDate": "2022-12-12",
+                                "verdicts": [],
+                                "wording": "Toby Ritchie have set up a TV cable without a valid license."
+                            }
+                        ]
+                    }
+                ],
+                "hasResultAmended": false,
+                "hearingDays": [
+                    {
+                        "courtCentreId": "7e967376-eacf-4fca-9b30-21b0c5aad427",
+                        "courtRoomId": "8e912353-3b5d-36c3-953e-ad3b94b19de3",
+                        "isCancelled": false,
+                        "listedDurationMinutes": 20,
+                        "listingSequence": 12,
+                        "sittingDay": "2026-07-13T10:30:00.000Z"
+                    }
+                ],
+                "hearingListingStatus": "HEARING_INITIALISED",
+                "id": "90faadda-e04d-4641-bbd0-26a3bd25328d",
+                "isApplicationHearing": false,
+                "jurisdictionType": "MAGISTRATES",
+                "type": {
+                    "description": "First hearing",
+                    "id": "4a0e892d-c0c5-3c51-95b8-704d8c781776"
+                }
+            }
+        ],
+        "id": "2f354689-fdda-472d-82a1-7b2ebdb0ac48",
+        "latestHearingJurisdictionType": "MAGISTRATES",
+        "prosecutionCaseIdentifier": {
+            "address": {
+                "address1": "Surrey Police",
+                "address2": "Mount Browne",
+                "address3": "Sandy Lane",
+                "address4": "Guildford",
+                "postcode": "GU3 1HG"
+            },
+            "contact": {
+                "primaryEmail": "mail_data_bureau_res@surrey.police.uk"
+            },
+            "majorCreditorCode": "PO45",
+            "prosecutionAuthorityCode": "SURRPF",
+            "prosecutionAuthorityId": "764bff92-a135-34cb-b858-8bb6b4b66301",
+            "prosecutionAuthorityName": "Surrey Police",
+            "prosecutionAuthorityOUCode": "0450000",
+            "caseURN": "28DI4469859"
+        }
+    },
+    "relatedCases": [
+        {
+            "masterDefendantId": "8cd13f44-c951-446b-a3c8-adc597e4725d",
+            "cases": [
+                {
+                    "caseId": "0083fce0-2a70-4628-a029-2778ba77d7d3",
+                    "caseStatus": "ACTIVE",
+                    "prosecutionCaseIdentifier": {
+                        "prosecutionAuthorityId": "9d38428b-7f9d-3aab-8269-f1427dd15c57",
+                        "prosecutionAuthorityCode": "GLOSPF",
+                        "caseURN": "28DI3016261"
+                    },
+                    "offences": [
+                        {
+                            "arrestDate": "2022-12-14",
+                            "chargeDate": "2022-12-15",
+                            "count": 0,
+                            "endorsableFlag": false,
+                            "id": "1493692b-afde-4023-a05b-d4eac0c4ec27",
+                            "listingNumber": 1,
+                            "maxPenalty": "S:L3",
+                            "modeOfTrial": "Summary",
+                            "offenceCode": "CA03012",
+                            "offenceDateCode": 1,
+                            "offenceDefinitionId": "6588ffee-89ec-36a2-ab90-a54177cbda97",
+                            "offenceLegislation": "Contrary to section 363(3)(b) and (4) of the Communications Act 2003.",
+                            "offenceLegislationWelsh": "Yn groes i adran 363(3)(b) a (4) Deddf Cyfathrebu 2003.",
+                            "offenceTitle": "Possess / control TV set with intent another use install without a licence",
+                            "offenceTitleWelsh": "Meddu ar/mewn rheolaeth set deledu gan fwriadu i unigolyn arall ei ddefnyddio/osod heb drwydded",
+                            "orderIndex": 1,
+                            "startDate": "2022-12-12",
+                            "wording": "Raoul Hane have set up a TV cable without a valid license."
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "appealsLodgedInfo": {
+        "appealsLodged": false
+    }
+}
