@@ -189,8 +189,6 @@ class DefendantDetailsIntegrationTest extends IntegrationTestBase {
                 DEF_ID_WITH_SHARED_MASTER_DEF_ID);
     }
 
-    // --- helpers ---
-
     private void stub_cp_response_and_verify_expected_defendant_details_response(
             String cpResponseFile, String expectedDefendantDetailsResponseFile) {
         stubMappingResponse(caseUrn, caseId);
