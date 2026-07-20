@@ -225,6 +225,8 @@ jobs:
     needs: [Deploy]
     if: ${{ inputs.trigger_deploy }}
     runs-on: ubuntu-latest
+    outputs:
+      real_tag: ${{ steps.real_tag.outputs.value }}
     steps:
       - name: Wait for ADO pipeline 460
         uses: hmcts/monitor-ado-pipeline@v1
@@ -235,22 +237,58 @@ jobs:
           poll_interval: 30
           timeout: 1800
 
+      # Pipeline 460 (cp-gh-artifact-to-acr) computes its own timestamp
+      # suffix internally and prints the exact tag it pushed via
+      # `echo "Final IMAGE_TAG: $IMAGE_TAG"` (see
+      # hmcts/cpp-azure-devops-templates:pipelines/gh-artifact-to-acr.yaml).
+      # Read that back from the run's logs instead of separately guessing
+      # a suffix — the two were computed independently and never reliably
+      # matched, causing every deploy to reference a non-existent tag
+      # (ImagePullBackOff). No change to pipeline 460 needed, and no new
+      # Azure credentials — this only reuses the existing HMCTS_ADO_PAT.
+      - name: Read real image tag from ADO pipeline 460 logs
+        id: real_tag
+        shell: bash
+        env:
+          ADO_PAT: ${{ secrets.HMCTS_ADO_PAT }}
+          RUN_ID: ${{ needs.Deploy.outputs.run_id }}
+        run: |
+          AUTH=$(printf ':%s' "$ADO_PAT" | base64 -w0)
+          ORG="hmcts-cpp"
+          PROJECT="cpp-apps"
+
+          LOG_IDS=$(curl -sf -H "Authorization: Basic ${AUTH}" \
+            "https://dev.azure.com/${ORG}/${PROJECT}/_apis/build/builds/${RUN_ID}/logs?api-version=7.1" \
+            | jq -r '.value[].id')
+
+          FOUND_LINE=""
+          for id in $LOG_IDS; do
+            MATCH=$(curl -sf -H "Authorization: Basic ${AUTH}" \
+              "https://dev.azure.com/${ORG}/${PROJECT}/_apis/build/builds/${RUN_ID}/logs/${id}?api-version=7.1" \
+              | grep -o 'Final IMAGE_TAG: .*' | tail -1 || true)
+            [ -n "$MATCH" ] && FOUND_LINE="$MATCH"
+          done
+
+          if [ -z "$FOUND_LINE" ]; then
+            echo "::error::Could not find a 'Final IMAGE_TAG:' line in ADO pipeline 460 run ${RUN_ID} logs"
+            exit 1
+          fi
+
+          FULL_REF="${FOUND_LINE#Final IMAGE_TAG: }"
+          REAL_TAG="${FULL_REF##*:}"
+          echo "Resolved real tag from ADO logs: ${REAL_TAG}"
+          echo "value=${REAL_TAG}" >> "$GITHUB_OUTPUT"
+
   deploy-dev:
     needs: [Wait-For-ACR-Push, Artefact-Version, Build]
     if: ${{ inputs.trigger_deploy && inputs.deploy_dev }}
     runs-on: ubuntu-latest
     steps:
-      - name: Generate date suffix
-        id: date
-        shell: bash
-        run: echo "suffix=_$(date -u +'%d%m%y')" >> "$GITHUB_OUTPUT"
-
       - name: Deploy via ADO pipeline
         uses: hmcts/action-ado-deploy@v1
         with:
           service_name: ${{ needs.Build.outputs.repo_name }}
-          image_tag: ${{ needs.Artefact-Version.outputs.artefact_version }}
-          tag_suffix: ${{ steps.date.outputs.suffix }}
+          image_tag: ${{ needs.Wait-For-ACR-Push.outputs.real_tag }}
           app_id: ${{ secrets.DEPLOYMENT_APP_ID }}
           app_private_key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
           target_repository: hmcts/cp-vp-aks-deploy
@@ -273,17 +311,11 @@ jobs:
     if: ${{ inputs.trigger_deploy && inputs.deploy_sit }}
     runs-on: ubuntu-latest
     steps:
-      - name: Generate date suffix
-        id: date
-        shell: bash
-        run: echo "suffix=_$(date -u +'%d%m%y')" >> "$GITHUB_OUTPUT"
-
       - name: Deploy to SIT via ADO pipeline
         uses: hmcts/action-ado-deploy@v1
         with:
           service_name: ${{ needs.Build.outputs.repo_name }}
-          image_tag: ${{ needs.Artefact-Version.outputs.artefact_version }}
-          tag_suffix: ${{ steps.date.outputs.suffix }}
+          image_tag: ${{ needs.Wait-For-ACR-Push.outputs.real_tag }}
           app_id: ${{ secrets.DEPLOYMENT_APP_ID }}
           app_private_key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
           target_repository: hmcts/cp-vp-aks-deploy
