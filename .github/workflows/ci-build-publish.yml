@@ -280,7 +280,14 @@ jobs:
 
           FULL_REF="${FOUND_LINE#Final IMAGE_TAG: }"
           REAL_TAG="${FULL_REF##*:}"
-          REAL_TAG=$(printf '%s' "$REAL_TAG" | tr -d '\r\n[:space:]')
+          # Positively match only valid Docker tag/k8s label characters
+          # instead of stripping specific bad ones. Pipeline 460 runs under
+          # set -xe, which prints a second, single-quote-wrapped trace line
+          # for the same echo (ADO stores stdout/trace as separate log
+          # streams), so a stray quote can end up as the "last match" across
+          # logs just as easily as a stray \r. Anchoring on valid characters
+          # discards any such garbage regardless of what it is.
+          REAL_TAG=$(printf '%s' "$REAL_TAG" | grep -oE '^[A-Za-z0-9._-]+')
           echo "Resolved real tag from ADO logs: ${REAL_TAG}"
           echo "value=${REAL_TAG}" >> "$GITHUB_OUTPUT"
 
