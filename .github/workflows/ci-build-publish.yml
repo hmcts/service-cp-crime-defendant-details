@@ -263,9 +263,13 @@ jobs:
 
           FOUND_LINE=""
           for id in $LOG_IDS; do
+            # ADO log content uses CRLF line endings; tr strips the \r so it
+            # never ends up embedded in the extracted tag (grep's '.' matches
+            # \r, since it only excludes \n, and a trailing \r fails k8s label
+            # validation once it flows through to a Helm chart label).
             MATCH=$(curl -sf -H "Authorization: Basic ${AUTH}" \
               "https://dev.azure.com/${ORG}/${PROJECT}/_apis/build/builds/${RUN_ID}/logs/${id}?api-version=7.1" \
-              | grep -o 'Final IMAGE_TAG: .*' | tail -1 || true)
+              | tr -d '\r' | grep -o 'Final IMAGE_TAG: .*' | tail -1 || true)
             [ -n "$MATCH" ] && FOUND_LINE="$MATCH"
           done
 
@@ -276,6 +280,7 @@ jobs:
 
           FULL_REF="${FOUND_LINE#Final IMAGE_TAG: }"
           REAL_TAG="${FULL_REF##*:}"
+          REAL_TAG=$(printf '%s' "$REAL_TAG" | tr -d '\r\n[:space:]')
           echo "Resolved real tag from ADO logs: ${REAL_TAG}"
           echo "value=${REAL_TAG}" >> "$GITHUB_OUTPUT"
 
@@ -300,10 +305,10 @@ jobs:
           wait: false
           template_parameters: >
             {
-              "env": "ste",
-              "cpbackendenv": "steccm14",
-              "stack": "steamp01",
-              "cluster": "K8-STE-CS01-CL01"
+              "env": "dev",
+              "cpbackendenv": "steccm64",
+              "stack": "devamp01",
+              "cluster": "K8-DEV-CS01-CL01"
             }
 
   deploy-sit:
