@@ -5,8 +5,8 @@ plugins {
   id 'io.spring.dependency-management' version '1.1.7'
   id 'jacoco'
   id 'maven-publish'
-  id 'com.github.ben-manes.versions' version '0.54.0'
-  id 'org.cyclonedx.bom' version '3.2.4'
+  id 'com.github.ben-manes.versions' version '0.60.0'
+  id 'org.cyclonedx.bom' version '3.3.0'
   id 'com.gorylenko.gradle-git-properties' version '4.0.1'
 }
 
@@ -37,7 +37,7 @@ dependencies {
 
   // Java core
   implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
-  implementation 'org.owasp.encoder:encoder:1.2.3'
+  implementation 'org.owasp.encoder:encoder:1.4.0'
 
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
@@ -54,7 +54,7 @@ dependencies {
   testImplementation 'org.wiremock:wiremock-standalone:3.13.2'
 
   // Required at compile time for the generated contract's @Schema annotations (not resolved transitively)
-  implementation 'io.swagger.core.v3:swagger-annotations:2.2.52'
+  implementation 'io.swagger.core.v3:swagger-annotations:2.2.53'
 
   // --- Observability / Actuator / OTEL / Prometheus ---
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -62,5 +62,5 @@ dependencies {
 
   // Security: pin transitive tomcat-embed-core to patched version (CVE-2026-41293, -43512, et al.)
   // Brought in transitively via spring-boot-starter-web; >=11.0.0-M1,<11.0.22 are vulnerable
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.23'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.24'
 }
