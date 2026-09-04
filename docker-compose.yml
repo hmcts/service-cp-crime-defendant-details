@@ -14,5 +14,9 @@ services:
     environment:
       AMP_BACKEND_URL: "http://wiremock:8080"
       CP_BACKEND_URL: "http://wiremock:8080"
+      # Placeholders. Token validation stays in ENFORCE so this runs the deployed posture;
+      # no token here is valid, so every business endpoint answers 401 by design.
+      AUTH_TENANT_ID: "00000000-0000-0000-0000-000000000001"
+      AUTH_AUDIENCE: "00000000-0000-0000-0000-000000000002"
     ports:
       - "8082:8082"
