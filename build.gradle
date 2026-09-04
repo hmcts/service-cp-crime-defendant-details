@@ -39,6 +39,9 @@ dependencies {
   implementation 'net.logstash.logback:logstash-logback-encoder:9.0'
   implementation 'org.owasp.encoder:encoder:1.2.3'
 
+  // Entra access token validation
+  implementation 'com.nimbusds:nimbus-jose-jwt:10.9.1'
+
   compileOnly 'org.projectlombok:lombok:1.18.46'
   annotationProcessor 'org.projectlombok:lombok:1.18.46'
   testCompileOnly 'org.projectlombok:lombok:1.18.46'
@@ -59,6 +62,8 @@ dependencies {
   // --- Observability / Actuator / OTEL / Prometheus ---
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+  // Expose actuator endpoint
+  implementation 'io.micrometer:micrometer-registry-prometheus'
 
   // Security: pin transitive tomcat-embed-core to patched version (CVE-2026-41293, -43512, et al.)
   // Brought in transitively via spring-boot-starter-web; >=11.0.0-M1,<11.0.22 are vulnerable
