@@ -104,15 +104,16 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                                  final HttpServletResponse response,
                                  final FilterChain filterChain,
                                  final TokenRejectionReason reason) throws ServletException, IOException {
+        final String pathForLog = sanitiseForLog(normalisedPath(request));
         if (authProperties.isEnforcing()) {
             authMetrics.recordRejected(reason);
-            log.warn("Rejecting {} {}: {}", request.getMethod(), normalisedPath(request), reason);
+            log.warn("Rejecting {} {}: {}", request.getMethod(), pathForLog, reason);
             writeChallenge(response, reason);
         } else {
             authMetrics.recordWouldReject(reason);
             log.warn("Access token would have been rejected for {} {}: {}. auth.mode is {}, so the "
                             + "request is being served anyway and this endpoint is not protected.",
-                    request.getMethod(), normalisedPath(request), reason, authProperties.getMode());
+                    request.getMethod(), pathForLog, reason, authProperties.getMode());
             proceedUnverified(request, response, filterChain);
         }
     }
@@ -210,5 +211,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
      */
     private static String normalisedPath(final HttpServletRequest request) {
         return URI.create(request.getRequestURI()).normalize().getPath();
+    }
+
+    private static String sanitiseForLog(final String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.replace('\r', '_').replace('\n', '_');
     }
 }
