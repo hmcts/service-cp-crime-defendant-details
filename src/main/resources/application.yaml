@@ -36,3 +36,14 @@ progression-client:
   url: ${CP_BACKEND_URL:http://localhost:8081}
   path: /progression-query-api/query/api/rest/progression/prosecutioncases
   cjscppuid: ${CJSCPPUID:00000000-0000-0000-0000-000000000000}
+
+# Microsoft Entra app-only access token validation
+auth:
+  mode: ${AUTH_MODE:ENFORCE}
+  tenant-id: ${AUTH_TENANT_ID:}
+  audience: ${AUTH_AUDIENCE:}
+  issuer: ${AUTH_ISSUER:}
+  jwks-uri: ${AUTH_JWKS_URI:}
+  required-role: ${AUTH_REQUIRED_ROLE:DefendantDetails.Read}
+  clock-skew-seconds: ${AUTH_CLOCK_SKEW_SECONDS:60}
+  jwks-cache-ttl-seconds: ${AUTH_JWKS_CACHE_TTL_SECONDS:300}

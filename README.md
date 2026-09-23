@@ -95,6 +95,7 @@ If you've built something useful that isn't covered above — **please add it to
 Further documentation can be found in the [docs](docs) directory.
 
 ### Key Documentation
+- [Authentication](docs/Authentication.md) - Entra access token validation, the environment variables it requires, and the conformance suite
 - [Spring Boot v4 Upgrade Guide](docs/SpringUpgradev4.md) - Details on the Spring Boot v4 upgrade, tracing test fixes, and code refactoring improvements
 - [Logging Documentation](docs/Logging.md) - Logging configuration and best practices
 - [Pipeline Documentation](docs/PIPELINE.md) - CI/CD pipeline configuration and deployment processes
