@@ -40,11 +40,26 @@ class AuthPropertiesTest {
                 .hasMessageContaining("auth.tenant-id");
     }
 
-    @Test
-    void startup_fails_when_the_required_role_is_blank_and_the_mode_is_enforcing() {
-        assertThatThrownBy(() -> properties(AuthMode.ENFORCE, deployed(), TENANT, AUDIENCE, " ", 60))
+    /**
+     * There is no default role: a missing AUTH_ROLES must stop the pod starting, not surface later
+     * as every caller getting a 403.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", ",", " , ,"})
+    void startup_fails_when_the_roles_allowlist_is_blank_and_the_mode_is_enforcing(final String roles) {
+        assertThatThrownBy(() -> properties(AuthMode.ENFORCE, deployed(), TENANT, AUDIENCE, roles, 60))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("auth.required-role");
+                .hasMessageContaining("auth.roles")
+                .hasMessageContaining("AUTH_ROLES");
+    }
+
+    @Test
+    void the_roles_allowlist_is_split_on_commas_and_trimmed() {
+        final AuthProperties properties = properties(AuthMode.ENFORCE, deployed(), TENANT, AUDIENCE,
+                " DefendantDetails.Read ,,DefendantDetails.ReadAll ", 60);
+
+        assertThat(properties.getRoles())
+                .containsExactlyInAnyOrder("DefendantDetails.Read", "DefendantDetails.ReadAll");
     }
 
     /**
@@ -117,10 +132,10 @@ class AuthPropertiesTest {
                                              final Environment environment,
                                              final String tenantId,
                                              final String audience,
-                                             final String requiredRole,
+                                             final String roles,
                                              final long clockSkewSeconds) {
         return new AuthProperties(environment, mode, tenantId, audience, "", "",
-                requiredRole, clockSkewSeconds, 300);
+                roles, clockSkewSeconds, 300);
     }
 
     /** A deployed pod: no local or test profile. */

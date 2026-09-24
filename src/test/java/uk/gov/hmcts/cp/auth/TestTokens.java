@@ -29,7 +29,13 @@ public final class TestTokens {
     public static final String TENANT_ID = "11111111-1111-1111-1111-111111111111";
     public static final String AUDIENCE = "22222222-2222-2222-2222-222222222222";
     public static final String ISSUER = "https://login.microsoftonline.com/" + TENANT_ID + "/v2.0";
-    public static final String REQUIRED_ROLE = "DefendantDetails.Read";
+    public static final String ACCEPTED_ROLE = "DefendantDetails.Read";
+
+    /** A second role in the allowlist, so a token holding only this one must still be accepted. */
+    public static final String OTHER_ACCEPTED_ROLE = "DefendantDetails.ReadAll";
+
+    /** The comma-separated allowlist, as AUTH_ROLES would supply it. */
+    public static final String ACCEPTED_ROLES = ACCEPTED_ROLE + ", " + OTHER_ACCEPTED_ROLE;
     public static final long CLOCK_SKEW_SECONDS = 60;
 
     /** The calling application's client id - the {@code azp} claim, and the caller's identity. */
@@ -70,7 +76,7 @@ public final class TestTokens {
         final MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("test");
         return new AuthProperties(environment, mode, TENANT_ID, AUDIENCE, "", "",
-                REQUIRED_ROLE, CLOCK_SKEW_SECONDS, 300);
+                ACCEPTED_ROLES, CLOCK_SKEW_SECONDS, 300);
     }
 
     /**
@@ -87,7 +93,7 @@ public final class TestTokens {
                 .claim("azp", CLIENT_ID.toString())
                 .claim("tid", TENANT_ID)
                 .claim("ver", "2.0")
-                .claim("roles", List.of(REQUIRED_ROLE))
+                .claim("roles", List.of(ACCEPTED_ROLE))
                 .issueTime(Date.from(now))
                 .notBeforeTime(Date.from(now))
                 .expirationTime(Date.from(now.plusSeconds(3600)));
