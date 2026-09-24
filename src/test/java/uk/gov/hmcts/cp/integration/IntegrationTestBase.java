@@ -14,7 +14,7 @@ import uk.gov.hmcts.cp.config.AppPropertiesBackend;
     "auth.mode=ENFORCE",
     "auth.tenant-id=" + TestTokens.TENANT_ID,
     "auth.audience=" + TestTokens.AUDIENCE,
-    "auth.required-role=" + TestTokens.REQUIRED_ROLE,
+    "auth.roles=" + TestTokens.ACCEPTED_ROLES,
     "auth.clock-skew-seconds=60"})
 @AutoConfigureMockMvc
 @Import({TestAuthConfiguration.class, AuthenticatedMockMvcConfiguration.class})

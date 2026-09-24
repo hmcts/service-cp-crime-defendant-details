@@ -6,6 +6,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * Entra token validation configuration, validated at construction so that a misconfigured service
  * fails to start rather than degrading into one that accepts anything.
@@ -26,7 +30,7 @@ public class AuthProperties {
     private final String audience;
     private final String issuer;
     private final String jwksUri;
-    private final String requiredRole;
+    private final Set<String> roles;
     private final long clockSkewSeconds;
     private final long jwksCacheTtlSeconds;
 
@@ -37,18 +41,19 @@ public class AuthProperties {
             @Value("${auth.audience:}") final String audience,
             @Value("${auth.issuer:}") final String issuer,
             @Value("${auth.jwks-uri:}") final String jwksUri,
-            @Value("${auth.required-role}") final String requiredRole,
+            @Value("${auth.roles:}") final String roles,
             @Value("${auth.clock-skew-seconds}") final long clockSkewSeconds,
             @Value("${auth.jwks-cache-ttl-seconds}") final long jwksCacheTtlSeconds) {
 
+        final Set<String> parsedRoles = parseRoles(roles);
         requireEnforcingUnlessLocal(mode, environment);
-        requireValidationConfiguration(mode, tenantId, audience, requiredRole);
+        requireValidationConfiguration(mode, tenantId, audience, parsedRoles);
         requireCappedClockSkew(clockSkewSeconds);
 
         this.mode = mode;
         this.tenantId = tenantId.trim();
         this.audience = audience.trim();
-        this.requiredRole = requiredRole.trim();
+        this.roles = parsedRoles;
         this.clockSkewSeconds = clockSkewSeconds;
         this.jwksCacheTtlSeconds = jwksCacheTtlSeconds;
         this.issuer = issuer.isBlank() ? ENTRA_BASE_URL + this.tenantId + "/v2.0" : issuer.trim();
@@ -79,15 +84,23 @@ public class AuthProperties {
     private static void requireValidationConfiguration(final AuthMode mode,
                                                        final String tenantId,
                                                        final String audience,
-                                                       final String requiredRole) {
+                                                       final Set<String> roles) {
         if (mode != AuthMode.OFF) {
             requireConfigured(tenantId, "auth.tenant-id", "AUTH_TENANT_ID",
                     "the tenant that issues the tokens, which is not necessarily the tenant hosting this service");
             requireConfigured(audience, "auth.audience", "AUTH_AUDIENCE",
                     "this API's own audience. A blank value must never be read as 'accept any audience'");
-            requireConfigured(requiredRole, "auth.required-role", "AUTH_REQUIRED_ROLE",
-                    "the application role a caller must hold");
+            requireConfigured(String.join(",", roles), "auth.roles", "AUTH_ROLES",
+                    "a comma-separated list of the application roles this API recognises, exactly as the "
+                            + "app registration declares them");
         }
+    }
+
+    private static Set<String> parseRoles(final String roles) {
+        return Arrays.stream(roles.split(","))
+                .map(String::trim)
+                .filter(role -> !role.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     private static void requireConfigured(final String value,

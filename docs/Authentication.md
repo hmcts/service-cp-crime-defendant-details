@@ -3,7 +3,7 @@
 This service validates Microsoft Entra **app-only** (client credentials) access tokens on every
 request, with an enumerated list of exempt infrastructure endpoints.
 
-> **Before this is deployed anywhere, `AUTH_TENANT_ID` and `AUTH_AUDIENCE` must be set in that
+> **Before this is deployed anywhere, `AUTH_TENANT_ID`, `AUTH_AUDIENCE` and `AUTH_ROLES` must be set in that
 > environment's deployment configuration.** They have no defaults. With `AUTH_MODE` at its default
 > of `ENFORCE`, the service will fail to start without them. That is deliberate — see
 > [Why startup fails rather than degrades](#why-startup-fails-rather-than-degrades).
@@ -22,7 +22,7 @@ in-application check — the pod is reachable inside the cluster without going t
 | `AUTH_MODE` | `ENFORCE` | `OFF`, `OBSERVE` or `ENFORCE`. See below. |
 | `AUTH_TENANT_ID` | *(none)* | The tenant that **issues** the tokens. Not necessarily the tenant hosting the service — the hosting tenant's directory id rejects every token. |
 | `AUTH_AUDIENCE` | *(none)* | This API's own audience. |
-| `AUTH_REQUIRED_ROLE` | `DefendantDetails.Read` | The application role a caller must hold. |
+| `AUTH_ROLES` | *(none)* | Comma-separated allowlist of the application roles this API recognises, exactly as the app registration declares them (case-sensitive). A caller must hold at least one. |
 | `AUTH_ISSUER` | derived from the tenant | Override only if you have a reason to. |
 | `AUTH_JWKS_URI` | derived from the tenant | As above. |
 | `AUTH_CLOCK_SKEW_SECONDS` | `60` | Capped at 300. A larger skew turns `exp` into a no-op. |
@@ -56,14 +56,14 @@ one.
 
 | Claim | Rule |
 |---|---|
-| `aud` | Equals this API's audience |
+| `aud` | A single value, equal to this API's audience — a multi-valued `aud` that merely contains it is rejected |
 | `iss` | **Exact** string match — never a prefix or `contains` |
 | `exp` | **Required**, and in the future within the configured skew |
 | `nbf` | Checked when present |
 | `tid` | Exact match against the issuing tenant (defence in depth; `iss` already contains it) |
 | `ver` | `2.0` |
 | `azp` | The caller's identity. Must parse as a UUID |
-| `roles` | Present, non-empty, and containing `AUTH_REQUIRED_ROLE` |
+| `roles` | Present, non-empty, and containing at least one role listed in `AUTH_ROLES` |
 | `scp` | **Prohibited** — its presence means a delegated user token |
 
 The signature algorithm is **pinned to RS256 in the verifier's own configuration**. It is not read
@@ -102,7 +102,7 @@ Enumerated in `ExemptPaths` and matched **exactly**, never by prefix:
 
 401 means "we do not know who you are"; 403 means "we know, and you may not do this". A token that
 fails signature, claim or app-only checks yields no trustworthy identity, so it is 401. A token that
-verifies but lacks the required role identifies its caller, so it is 403.
+verifies but holds no role listed in `AUTH_ROLES` identifies its caller, so it is 403.
 
 Responses carry an RFC 6750 `WWW-Authenticate` challenge (`invalid_token`, `insufficient_scope`) and
 an `ErrorResponse` body. Both carry a **coarse reason only** — never claim values and never the
@@ -137,9 +137,9 @@ SPRING_PROFILES_ACTIVE=local AUTH_MODE=OFF ./gradlew bootRun
 | Item | Owner |
 |---|---|
 | App registration exposing this API's audience, per environment | Entra / platform admin |
-| The application role **declared and assigned, with admin consent** | Entra / platform admin |
+| The application role **declared and assigned, with admin consent**, and its value listed in `AUTH_ROLES` | Entra / platform admin, deployment |
 | `requestedAccessTokenVersion` pinned to `2` | Entra admin |
-| Per-environment tenant and audience values wired into the deployment config | Deployment |
+| Per-environment tenant, audience and roles values wired into the deployment config | Deployment |
 
 A **declared** role is not an **assigned** one. A role declared without admin consent produces a
 token that looks entirely correct but silently omits `roles`, and this service will return 403.

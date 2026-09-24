@@ -18,5 +18,6 @@ services:
       # no token here is valid, so every business endpoint answers 401 by design.
       AUTH_TENANT_ID: "00000000-0000-0000-0000-000000000001"
       AUTH_AUDIENCE: "00000000-0000-0000-0000-000000000002"
+      AUTH_ROLES: "DefendantDetails.Read"
     ports:
       - "8082:8082"

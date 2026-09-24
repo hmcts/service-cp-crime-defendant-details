@@ -71,6 +71,7 @@ public class EntraTokenValidator {
      */
     public ValidatedCaller validate(final String token) throws TokenValidationException {
         final JWTClaimsSet claims = verify(token);
+        requireSingleAudience(claims);
         requireAppOnly(claims);
         final UUID clientId = authorisedParty(claims);
         final List<String> roles = requireRole(claims);
@@ -109,6 +110,17 @@ public class EntraTokenValidator {
     }
 
     /**
+     * Nimbus accepts an {@code aud} that merely contains this API's audience among others. Entra
+     * issues a single-valued {@code aud}, so anything else is rejected rather than tolerated.
+     */
+    private void requireSingleAudience(final JWTClaimsSet claims) throws TokenValidationException {
+        final List<String> audience = claims.getAudience();
+        if (audience.size() != 1 || !audience.getFirst().equals(authProperties.getAudience())) {
+            throw rejected(TokenRejectionReason.CLAIM_VALIDATION_FAILED, null);
+        }
+    }
+
+    /**
      * Proves the token is app-only from {@code sub == oid}, a non-empty {@code roles} and an absent
      * {@code scp}, rather than from {@code idtyp}.
      *
@@ -142,14 +154,15 @@ public class EntraTokenValidator {
      * A declared role is not an assigned one: roles declared on the app registration without admin
      * consent produce a token that looks entirely correct but silently omits {@code roles}. That is
      * an Entra problem, so it is reported as 403 with a distinct reason rather than folded into the
-     * generic claim failure.
+     * generic claim failure. A token carrying roles, none of which this API recognises, is
+     * likewise 403 but reported separately.
      */
     private List<String> requireRole(final JWTClaimsSet claims) throws TokenValidationException {
         final List<String> roles = stringListClaim(claims);
         if (roles.isEmpty()) {
             throw rejected(TokenRejectionReason.MISSING_ROLES, null);
         }
-        if (!roles.contains(authProperties.getRequiredRole())) {
+        if (roles.stream().noneMatch(authProperties.getRoles()::contains)) {
             throw rejected(TokenRejectionReason.INSUFFICIENT_ROLE, null);
         }
         return roles;

@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,7 +28,8 @@ import static uk.gov.hmcts.cp.auth.TestTokens.CLIENT_ID;
 import static uk.gov.hmcts.cp.auth.TestTokens.GRAPH_AUDIENCE;
 import static uk.gov.hmcts.cp.auth.TestTokens.ISSUER;
 import static uk.gov.hmcts.cp.auth.TestTokens.OBJECT_ID;
-import static uk.gov.hmcts.cp.auth.TestTokens.REQUIRED_ROLE;
+import static uk.gov.hmcts.cp.auth.TestTokens.OTHER_ACCEPTED_ROLE;
+import static uk.gov.hmcts.cp.auth.TestTokens.ACCEPTED_ROLE;
 import static uk.gov.hmcts.cp.auth.TestTokens.SIBLING_API_AUDIENCE;
 import static uk.gov.hmcts.cp.auth.TestTokens.SIGNING_KEY;
 import static uk.gov.hmcts.cp.auth.TestTokens.TENANT_ID;
@@ -53,7 +55,7 @@ class EntraTokenValidatorConformanceTest {
             final ValidatedCaller caller = validator.validate(validToken());
 
             assertThat(caller.clientId()).isEqualTo(CLIENT_ID);
-            assertThat(caller.roles()).containsExactly(REQUIRED_ROLE);
+            assertThat(caller.roles()).containsExactly(ACCEPTED_ROLE);
         }
 
         /**
@@ -93,13 +95,23 @@ class EntraTokenValidatorConformanceTest {
         }
 
         @Test
-        void additional_roles_beyond_the_required_one_are_accepted_and_returned() throws Exception {
+        void additional_roles_beyond_the_accepted_one_are_accepted_and_returned() throws Exception {
             final String token = sign(validClaims()
-                    .claim("roles", List.of("Some.Other.Role", REQUIRED_ROLE))
+                    .claim("roles", List.of("Some.Other.Role", ACCEPTED_ROLE))
                     .build());
 
             assertThat(validator.validate(token).roles())
-                    .containsExactly("Some.Other.Role", REQUIRED_ROLE);
+                    .containsExactly("Some.Other.Role", ACCEPTED_ROLE);
+        }
+
+        /** The allowlist is an intersection: any one recognised role is enough. */
+        @Test
+        void token_holding_only_another_allowlisted_role_is_accepted() throws Exception {
+            final String token = sign(validClaims()
+                    .claim("roles", List.of(OTHER_ACCEPTED_ROLE))
+                    .build());
+
+            assertThat(validator.validate(token).roles()).containsExactly(OTHER_ACCEPTED_ROLE);
         }
     }
 
@@ -231,6 +243,13 @@ class EntraTokenValidatorConformanceTest {
                     TokenRejectionReason.CLAIM_VALIDATION_FAILED);
         }
 
+        /** Containing this API's audience is not enough; it must be the only one. */
+        @Test
+        void multi_valued_audience_containing_this_api_is_rejected() {
+            assertRejectedWith(sign(validClaims().audience(List.of(AUDIENCE, SIBLING_API_AUDIENCE)).build()),
+                    TokenRejectionReason.CLAIM_VALIDATION_FAILED);
+        }
+
         @Test
         void missing_audience_is_rejected() {
             assertRejectedWith(sign(validClaims().audience((String) null).build()),
@@ -349,8 +368,17 @@ class EntraTokenValidatorConformanceTest {
         }
 
         @Test
-        void token_without_the_required_role_is_rejected_as_forbidden() {
+        void token_without_any_allowlisted_role_is_rejected_as_forbidden() {
             assertRejectedWith(sign(validClaims().claim("roles", List.of("Some.Other.Role")).build()),
+                    TokenRejectionReason.INSUFFICIENT_ROLE);
+        }
+
+        /** Role values are matched exactly, as Entra emits them. */
+        @Test
+        void role_matching_is_case_sensitive() {
+            assertRejectedWith(sign(validClaims()
+                            .claim("roles", List.of(ACCEPTED_ROLE.toLowerCase(Locale.UK)))
+                            .build()),
                     TokenRejectionReason.INSUFFICIENT_ROLE);
         }
     }

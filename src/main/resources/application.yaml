@@ -44,6 +44,6 @@ auth:
   audience: ${AUTH_AUDIENCE:}
   issuer: ${AUTH_ISSUER:}
   jwks-uri: ${AUTH_JWKS_URI:}
-  required-role: ${AUTH_REQUIRED_ROLE:DefendantDetails.Read}
+  roles: ${AUTH_ROLES:}
   clock-skew-seconds: ${AUTH_CLOCK_SKEW_SECONDS:60}
   jwks-cache-ttl-seconds: ${AUTH_JWKS_CACHE_TTL_SECONDS:300}

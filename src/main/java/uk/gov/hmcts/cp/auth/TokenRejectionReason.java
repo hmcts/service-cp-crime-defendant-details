@@ -34,7 +34,7 @@ public enum TokenRejectionReason {
     MISSING_ROLES(HttpStatus.FORBIDDEN, Rfc6750.INSUFFICIENT_SCOPE,
             "Access token grants no application roles"),
     INSUFFICIENT_ROLE(HttpStatus.FORBIDDEN, Rfc6750.INSUFFICIENT_SCOPE,
-            "Access token does not grant the required application role");
+            "Access token grants no application role this API recognises");
 
     private final HttpStatus status;
 
