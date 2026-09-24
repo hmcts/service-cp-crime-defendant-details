@@ -18,8 +18,20 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Merges performed with the default GITHUB_TOKEN don't trigger other
+      # workflow runs (GitHub's anti-recursion safeguard), so a GITHUB_TOKEN
+      # merge here silently skips ci-draft.yml's push-triggered Build/Publish/
+      # Deploy jobs. Mint a token from the same GitHub App already used for
+      # deploys so the merge behaves like a normal push and fires them.
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.DEPLOYMENT_APP_ID }}
+          private-key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+
       - name: Enable auto-merge
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}

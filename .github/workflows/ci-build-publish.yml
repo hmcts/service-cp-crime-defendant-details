@@ -296,6 +296,55 @@ jobs:
     if: ${{ inputs.trigger_deploy && inputs.deploy_dev }}
     runs-on: ubuntu-latest
     steps:
+      # dev's services_values.yml carries two entries for this image:
+      # service-cp-crime-defendant-details (serves /defendants) and
+      # service-cp-crime-defendant-details-cnp (serves /dl).
+      # action-ado-deploy below only updates+deploys one service per call, so
+      # update the -cnp entry here first (commit + push only, no pipeline
+      # trigger) and let the deploy step below trigger pipeline 434 once,
+      # after both tags are already on the branch.
+      - name: Generate GitHub App token for cp-vp-aks-deploy
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.DEPLOYMENT_APP_ID }}
+          private-key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+          owner: hmcts
+          repositories: cp-vp-aks-deploy
+
+      - name: Update CNP (/dl) image tag
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          SERVICE: ${{ needs.Build.outputs.repo_name }}-cnp
+          NEW_TAG: ${{ needs.Wait-For-ACR-Push.outputs.real_tag }}
+        run: |
+          WORK_DIR=$(mktemp -d)
+          trap 'rm -rf "$WORK_DIR"' EXIT
+          git clone --depth 1 --branch env/dev \
+            "https://x-access-token:${GH_TOKEN}@github.com/hmcts/cp-vp-aks-deploy.git" "$WORK_DIR"
+
+          VALUES_FILE="$WORK_DIR/vp-config/services_values.yml"
+          export YQ_SERVICE="$SERVICE" YQ_NEW_TAG="$NEW_TAG"
+          CURRENT_TAG=$(yq '.services.[strenv(YQ_SERVICE)].image.tag' "$VALUES_FILE")
+          if [ "$CURRENT_TAG" = "null" ]; then
+            echo "::error::Service '$SERVICE' not found in $VALUES_FILE"
+            exit 1
+          fi
+
+          echo "Updating $SERVICE image tag: $CURRENT_TAG -> $NEW_TAG"
+          yq -i '.services.[strenv(YQ_SERVICE)].image.tag = strenv(YQ_NEW_TAG)' "$VALUES_FILE"
+
+          cd "$WORK_DIR"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add vp-config/services_values.yml
+          if git diff --cached --quiet; then
+            echo "No changes to commit (tag already up to date)"
+          else
+            git commit -m "chore: update $SERVICE image tag to $NEW_TAG"
+            git push origin env/dev
+          fi
+
       - name: Deploy via ADO pipeline
         uses: hmcts/action-ado-deploy@v1
         with:
@@ -323,6 +372,52 @@ jobs:
     if: ${{ inputs.trigger_deploy && inputs.deploy_sit }}
     runs-on: ubuntu-latest
     steps:
+      # sit's services_values.yml now carries the same legacy/-cnp split as
+      # dev - see deploy-dev for why this two-step shape is needed (one
+      # action-ado-deploy call per values-file entry, only the second call
+      # triggers pipeline 434).
+      - name: Generate GitHub App token for cp-vp-aks-deploy
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.DEPLOYMENT_APP_ID }}
+          private-key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+          owner: hmcts
+          repositories: cp-vp-aks-deploy
+
+      - name: Update CNP (/dl) image tag
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          SERVICE: ${{ needs.Build.outputs.repo_name }}-cnp
+          NEW_TAG: ${{ needs.Wait-For-ACR-Push.outputs.real_tag }}
+        run: |
+          WORK_DIR=$(mktemp -d)
+          trap 'rm -rf "$WORK_DIR"' EXIT
+          git clone --depth 1 --branch env/sit \
+            "https://x-access-token:${GH_TOKEN}@github.com/hmcts/cp-vp-aks-deploy.git" "$WORK_DIR"
+
+          VALUES_FILE="$WORK_DIR/vp-config/services_values.yml"
+          export YQ_SERVICE="$SERVICE" YQ_NEW_TAG="$NEW_TAG"
+          CURRENT_TAG=$(yq '.services.[strenv(YQ_SERVICE)].image.tag' "$VALUES_FILE")
+          if [ "$CURRENT_TAG" = "null" ]; then
+            echo "::error::Service '$SERVICE' not found in $VALUES_FILE"
+            exit 1
+          fi
+
+          echo "Updating $SERVICE image tag: $CURRENT_TAG -> $NEW_TAG"
+          yq -i '.services.[strenv(YQ_SERVICE)].image.tag = strenv(YQ_NEW_TAG)' "$VALUES_FILE"
+
+          cd "$WORK_DIR"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add vp-config/services_values.yml
+          if git diff --cached --quiet; then
+            echo "No changes to commit (tag already up to date)"
+          else
+            git commit -m "chore: update $SERVICE image tag to $NEW_TAG"
+            git push origin env/sit
+          fi
+
       - name: Deploy to SIT via ADO pipeline
         uses: hmcts/action-ado-deploy@v1
         with:
