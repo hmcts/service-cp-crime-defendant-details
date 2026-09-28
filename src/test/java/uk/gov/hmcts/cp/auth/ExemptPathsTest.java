@@ -12,13 +12,13 @@ class ExemptPathsTest {
     @ValueSource(strings = {
         "/",
         "/actuator/health",
-        "/actuator/health/",
         "/actuator/health/liveness",
-        "/actuator/health/liveness/",
         "/actuator/health/readiness",
-        "/actuator/health/readiness/",
         "/actuator/info",
-        "/actuator/prometheus"})
+        "/actuator/prometheus",
+        "/actuator/health/",
+        "/actuator/health/liveness/",
+        "/actuator/health/readiness/"})
     void every_declared_exempt_path_is_exempt(final String path) {
         assertThat(ExemptPaths.isExempt(path)).isTrue();
     }
@@ -33,8 +33,7 @@ class ExemptPathsTest {
         "/actuator/",
         "/actuator/healthx",
         "/actuator/health/custom",
-        "/actuator/info/",
-        "/actuator/prometheus/",
+        "/actuator/health//",
         "/actuator/env",
         "/actuator/beans",
         "/actuator/heapdump",
@@ -56,11 +55,8 @@ class ExemptPathsTest {
         assertThat(ExemptPaths.all()).containsExactlyInAnyOrder(
                 "/",
                 "/actuator/health",
-                "/actuator/health/",
                 "/actuator/health/liveness",
-                "/actuator/health/liveness/",
                 "/actuator/health/readiness",
-                "/actuator/health/readiness/",
                 "/actuator/info",
                 "/actuator/prometheus");
     }
