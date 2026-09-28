@@ -16,9 +16,13 @@ public final class ExemptPaths {
             // Root. Serves nothing; probed by load balancers.
             "/",
             // Kubernetes liveness and readiness probes, which send no Authorization header.
+            // Spring also serves health with a trailing slash; info and prometheus it does not.
             "/actuator/health",
+            "/actuator/health/",
             "/actuator/health/liveness",
+            "/actuator/health/liveness/",
             "/actuator/health/readiness",
+            "/actuator/health/readiness/",
             // Build and git metadata only.
             "/actuator/info",
             // Scraped in-cluster by Prometheus, which sends no Authorization header.
