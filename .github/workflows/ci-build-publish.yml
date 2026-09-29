@@ -305,7 +305,7 @@ jobs:
       # after both tags are already on the branch.
       - name: Generate GitHub App token for cp-vp-aks-deploy
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.DEPLOYMENT_APP_ID }}
           private-key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
@@ -378,7 +378,7 @@ jobs:
       # triggers pipeline 434).
       - name: Generate GitHub App token for cp-vp-aks-deploy
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.DEPLOYMENT_APP_ID }}
           private-key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
