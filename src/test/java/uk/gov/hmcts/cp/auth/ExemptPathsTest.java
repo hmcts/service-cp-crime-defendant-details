@@ -15,7 +15,10 @@ class ExemptPathsTest {
         "/actuator/health/liveness",
         "/actuator/health/readiness",
         "/actuator/info",
-        "/actuator/prometheus"})
+        "/actuator/prometheus",
+        "/actuator/health/",
+        "/actuator/health/liveness/",
+        "/actuator/health/readiness/"})
     void every_declared_exempt_path_is_exempt(final String path) {
         assertThat(ExemptPaths.isExempt(path)).isTrue();
     }
@@ -29,8 +32,8 @@ class ExemptPathsTest {
         "/actuator",
         "/actuator/",
         "/actuator/healthx",
-        "/actuator/health/",
         "/actuator/health/custom",
+        "/actuator/health//",
         "/actuator/env",
         "/actuator/beans",
         "/actuator/heapdump",

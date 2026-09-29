@@ -5,7 +5,7 @@ import java.util.Set;
 /**
  * The endpoints that may be reached without a validated access token.
  *
- * <p>Enumerated and matched exactly, never by prefix.
+ * <p>Enumerated and matched exactly, never by prefix, ignoring a single trailing slash.
  *
  * <p>Every entry is an infrastructure endpoint carrying no case data. Adding to this set is a
  * security change and must be reviewed as one.
@@ -28,7 +28,12 @@ public final class ExemptPaths {
     }
 
     public static boolean isExempt(final String path) {
-        return EXEMPT.contains(path);
+        return EXEMPT.contains(stripTrailingSlash(path));
+    }
+
+    /** Spring serves health at {@code /actuator/health/} as well, so a trailing slash must not defeat the match. */
+    private static String stripTrailingSlash(final String path) {
+        return path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
     }
 
     /** The exempt set, so a test can assert it has not silently grown. */

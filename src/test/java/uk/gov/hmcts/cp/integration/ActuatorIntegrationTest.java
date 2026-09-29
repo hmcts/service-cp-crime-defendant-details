@@ -71,6 +71,13 @@ class ActuatorIntegrationTest {
     }
 
     @Test
+    void actuator_health_with_trailing_slash_answers_without_a_token() throws Exception {
+        mockMvc.perform(get("/actuator/health/"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"));
+    }
+
+    @Test
     void the_auth_counters_are_scrapeable_without_a_token() throws Exception {
         mockMvc.perform(get("/defendants/cases/20GD1234567"))
                 .andExpect(status().isUnauthorized());
