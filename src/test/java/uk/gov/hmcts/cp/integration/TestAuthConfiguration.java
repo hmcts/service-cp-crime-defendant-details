@@ -1,10 +1,9 @@
 package uk.gov.hmcts.cp.integration;
 
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import uk.gov.hmcts.cp.auth.JwkSourceFactory;
 import uk.gov.hmcts.cp.auth.TestTokens;
 
 /**
@@ -17,7 +16,7 @@ public class TestAuthConfiguration {
 
     @Bean
     @Primary
-    public JWKSource<SecurityContext> testEntraJwkSource() {
-        return TestTokens.jwkSource();
+    public JwkSourceFactory testEntraJwkSourceFactory() {
+        return TestTokens.jwkSourceFactory();
     }
 }

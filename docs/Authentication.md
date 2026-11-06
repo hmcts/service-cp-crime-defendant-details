@@ -25,8 +25,33 @@ in-application check — the pod is reachable inside the cluster without going t
 | `AUTH_ROLES` | *(none)* | Comma-separated allowlist of the application roles this API recognises, exactly as the app registration declares them (case-sensitive). A caller must hold at least one. |
 | `AUTH_ISSUER` | derived from the tenant | Override only if you have a reason to. |
 | `AUTH_JWKS_URI` | derived from the tenant | As above. |
+| `AUTH_CP_TENANT_ID` | *(none)* | CP issuing tenant (AMP-1386; removed by AMP-1387). Blank means CP tokens are rejected. |
+| `AUTH_CP_AUDIENCE` | *(none)* | This API's audience in the CP tenant. Required when `AUTH_CP_TENANT_ID` is set. |
+| `AUTH_CP_ISSUER` | derived from the CP tenant | |
+| `AUTH_CP_JWKS_URI` | derived from the CP tenant | |
 | `AUTH_CLOCK_SKEW_SECONDS` | `60` | Capped at 300. A larger skew turns `exp` into a no-op. |
 | `AUTH_JWKS_CACHE_TTL_SECONDS` | `300` | So verification costs no outbound call per request. |
+
+### Primary and CP issuers
+
+`AUTH_*` is the primary issuer and is required. `AUTH_CP_*` optionally trusts the CP tenant too,
+until consumers onboarded via CP APIM have migrated (AMP-1386, removed by AMP-1387).
+
+| Issuer | Tenant / audience | Metric label |
+|---|---|---|
+| Primary | `AUTH_TENANT_ID` / `AUTH_AUDIENCE` | `primary` |
+| CP | `AUTH_CP_TENANT_ID` / `AUTH_CP_AUDIENCE` | `cp` |
+| Both in the same tenant | one issuer accepting both audiences | `primary+cp` |
+
+- The token's `iss` (read before verification, only to choose) selects exactly one trusted issuer by
+  exact match; an unknown or missing `iss` is rejected.
+- That issuer's own JWKS, `tid`, `aud` and `iss` checks then apply, so a token never mixes one
+  tenant's keys or audience with the other's.
+- The roles check is shared.
+
+The CP pair is all-or-nothing in every mode: a CP tenant without a CP audience, or any other
+`AUTH_CP_*` value without a CP tenant, fails startup. So does a CP issuer equal to the primary issuer
+with a different tenant or JWKS URI.
 
 ### The three modes
 
@@ -115,7 +140,7 @@ Scraped from `/actuator/prometheus`:
 
 | Counter | Meaning |
 |---|---|
-| `auth_tokens_accepted_total` | Validated successfully |
+| `auth_tokens_accepted_total{issuer}` | Validated successfully, by issuer: `primary`, `cp` or `primary+cp` |
 | `auth_tokens_rejected_total{reason}` | Rejected, and the request refused |
 | `auth_tokens_would_reject_total{reason}` | What `OBSERVE` **would** have rejected, having served it anyway |
 

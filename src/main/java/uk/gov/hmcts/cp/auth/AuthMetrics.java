@@ -13,19 +13,21 @@ import java.util.Locale;
 public class AuthMetrics {
 
     private static final String REASON_TAG = "reason";
+    private static final String ISSUER_TAG = "issuer";
 
     private final MeterRegistry registry;
-    private final Counter accepted;
 
     public AuthMetrics(final MeterRegistry registry) {
         this.registry = registry;
-        this.accepted = Counter.builder("auth_tokens_accepted_total")
-                .description("Access tokens that were validated successfully")
-                .register(registry);
     }
 
-    public void recordAccepted() {
-        accepted.increment();
+    /** Tagged with the {@link TrustedIssuer} name: {@code primary}, {@code cp} or {@code primary+cp}. */
+    public void recordAccepted(final String issuerName) {
+        Counter.builder("auth_tokens_accepted_total")
+                .description("Access tokens that were validated successfully")
+                .tag(ISSUER_TAG, issuerName)
+                .register(registry)
+                .increment();
     }
 
     public void recordRejected(final TokenRejectionReason reason) {

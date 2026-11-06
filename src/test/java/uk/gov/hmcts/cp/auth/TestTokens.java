@@ -67,15 +67,24 @@ public final class TestTokens {
         return new ImmutableJWKSet<>(new JWKSet(SIGNING_KEY.toPublicJWK()));
     }
 
+    /** Serves {@link #jwkSource()} for every JWKS URI. */
+    public static JwkSourceFactory jwkSourceFactory() {
+        return jwksUri -> jwkSource();
+    }
+
     /** A validator wired to that key set and to the properties below. */
     public static EntraTokenValidator validator() {
-        return new EntraTokenValidator(properties(AuthMode.ENFORCE), jwkSource());
+        return validator(AuthMode.ENFORCE);
+    }
+
+    public static EntraTokenValidator validator(final AuthMode mode) {
+        return new EntraTokenValidator(properties(mode), jwkSourceFactory());
     }
 
     public static AuthProperties properties(final AuthMode mode) {
         final MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("test");
-        return new AuthProperties(environment, mode, TENANT_ID, AUDIENCE, "", "",
+        return new AuthProperties(environment, mode, TENANT_ID, AUDIENCE, "", "", "", "", "", "",
                 ACCEPTED_ROLES, CLOCK_SKEW_SECONDS, 300);
     }
 

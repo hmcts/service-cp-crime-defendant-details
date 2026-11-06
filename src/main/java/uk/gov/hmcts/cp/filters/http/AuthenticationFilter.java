@@ -88,7 +88,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         try {
             final ValidatedCaller caller = tokenValidator.validate(bearerToken(request));
-            authMetrics.recordAccepted();
+            authMetrics.recordAccepted(caller.issuerName());
             proceedAsCaller(request, response, filterChain, caller);
         } catch (TokenValidationException e) {
             handleRejection(request, response, filterChain, e.getReason());

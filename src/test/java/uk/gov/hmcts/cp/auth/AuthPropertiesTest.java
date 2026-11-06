@@ -7,6 +7,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 
+import java.util.Locale;
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -20,6 +23,8 @@ class AuthPropertiesTest {
     private static final String TENANT = "11111111-1111-1111-1111-111111111111";
     private static final String AUDIENCE = "22222222-2222-2222-2222-222222222222";
     private static final String ROLE = "DefendantDetails.Read";
+    private static final String CP_TENANT = "66666666-6666-6666-6666-666666666666";
+    private static final String CP_AUDIENCE = "77777777-7777-7777-7777-777777777777";
 
     /**
      * The audience check is the only thing that rejects a genuine, correctly signed, unexpired
@@ -114,7 +119,7 @@ class AuthPropertiesTest {
     @Test
     void an_explicit_issuer_and_jwks_uri_override_the_derived_ones() {
         final AuthProperties properties = new AuthProperties(deployed(), AuthMode.ENFORCE, TENANT, AUDIENCE,
-                "https://issuer.test/v2.0", "https://issuer.test/keys", ROLE, 60, 300);
+                "https://issuer.test/v2.0", "https://issuer.test/keys", "", "", "", "", ROLE, 60, 300);
 
         assertThat(properties.getIssuer()).isEqualTo("https://issuer.test/v2.0");
         assertThat(properties.getJwksUri()).isEqualTo("https://issuer.test/keys");
@@ -128,13 +133,123 @@ class AuthPropertiesTest {
         assertThat(properties(AuthMode.OFF, local(), "", "", ROLE, 60).isValidating()).isFalse();
     }
 
+    @Test
+    void with_no_cp_values_only_the_primary_issuer_is_trusted() {
+        final AuthProperties properties = properties(AuthMode.ENFORCE, deployed(), TENANT, AUDIENCE, ROLE, 60);
+
+        assertThat(properties.isCpIssuerEnabled()).isFalse();
+        assertThat(properties.getTrustedIssuers()).extracting(TrustedIssuer::name).containsExactly("primary");
+    }
+
+    @Test
+    void a_cp_tenant_and_audience_add_a_second_separate_trusted_issuer() {
+        final AuthProperties properties = withCp(AuthMode.ENFORCE, CP_TENANT, CP_AUDIENCE, "", "");
+
+        assertThat(properties.getTrustedIssuers()).containsExactly(
+                new TrustedIssuer("primary", issuerFor(TENANT), TENANT, Set.of(AUDIENCE), jwksUriFor(TENANT)),
+                new TrustedIssuer("cp", issuerFor(CP_TENANT), CP_TENANT, Set.of(CP_AUDIENCE), jwksUriFor(CP_TENANT)));
+    }
+
+    @Test
+    void startup_fails_when_a_cp_tenant_has_no_cp_audience() {
+        assertThatThrownBy(() -> withCp(AuthMode.ENFORCE, CP_TENANT, " ", "", ""))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("auth.cp-audience")
+                .hasMessageContaining("AUTH_CP_AUDIENCE");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"audience", "issuer", "jwks"})
+    void startup_fails_when_any_other_cp_value_is_set_without_a_cp_tenant(final String which) {
+        assertThatThrownBy(() -> withCp(AuthMode.ENFORCE, "",
+                "audience".equals(which) ? CP_AUDIENCE : "",
+                "issuer".equals(which) ? issuerFor(CP_TENANT) : "",
+                "jwks".equals(which) ? jwksUriFor(CP_TENANT) : ""))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("auth.cp-tenant-id")
+                .hasMessageContaining("AUTH_CP_TENANT_ID");
+    }
+
+    @Test
+    void a_half_set_cp_pair_fails_startup_even_when_off() {
+        assertThatThrownBy(() -> new AuthProperties(local(), AuthMode.OFF, "", "", "", "",
+                CP_TENANT, "", "", "", ROLE, 60, 300))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("auth.cp-audience");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {TENANT, "  11111111-1111-1111-1111-111111111111 "})
+    void cp_in_the_same_tenant_becomes_one_issuer_accepting_both_audiences(final String cpTenant) {
+        final AuthProperties properties = withCp(AuthMode.ENFORCE, cpTenant.toUpperCase(Locale.ROOT), CP_AUDIENCE, "", "");
+
+        assertThat(properties.getTrustedIssuers()).singleElement().satisfies(trusted -> {
+            assertThat(trusted.name()).isEqualTo("primary+cp");
+            assertThat(trusted.tenantId()).isEqualTo(TENANT);
+            assertThat(trusted.audiences()).containsExactlyInAnyOrder(AUDIENCE, CP_AUDIENCE);
+        });
+    }
+
+    @Test
+    void the_same_tenant_and_audience_for_both_is_one_issuer_with_one_audience() {
+        final AuthProperties properties = withCp(AuthMode.ENFORCE, TENANT, AUDIENCE, "", "");
+
+        assertThat(properties.getTrustedIssuers()).singleElement()
+                .satisfies(trusted -> assertThat(trusted.audiences()).containsExactly(AUDIENCE));
+    }
+
+    @Test
+    void startup_fails_when_the_cp_issuer_equals_the_primary_issuer_in_another_tenant() {
+        assertThatThrownBy(() -> withCp(AuthMode.ENFORCE, CP_TENANT, CP_AUDIENCE, issuerFor(TENANT), ""))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("auth.cp-issuer equals auth.issuer");
+    }
+
+    @Test
+    void startup_fails_when_the_cp_issuer_equals_the_primary_issuer_with_other_keys() {
+        assertThatThrownBy(() -> withCp(AuthMode.ENFORCE, TENANT, CP_AUDIENCE, "", "https://issuer.test/keys"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("auth.cp-issuer equals auth.issuer");
+    }
+
+    @Test
+    void tenant_ids_are_trimmed_and_lower_cased_as_entra_emits_tid() {
+        final AuthProperties properties = new AuthProperties(deployed(), AuthMode.ENFORCE,
+                " " + TENANT.toUpperCase(Locale.ROOT) + " ", AUDIENCE, "", "",
+                "  " + CP_TENANT.toUpperCase(Locale.ROOT) + " ", " " + CP_AUDIENCE + " ", "", "", ROLE, 60, 300);
+
+        assertThat(properties.getTenantId()).isEqualTo(TENANT);
+        assertThat(properties.getIssuer()).isEqualTo(issuerFor(TENANT));
+        assertThat(properties.getCpTenantId()).isEqualTo(CP_TENANT);
+        assertThat(properties.getCpAudience()).isEqualTo(CP_AUDIENCE);
+        assertThat(properties.getCpIssuer()).isEqualTo(issuerFor(CP_TENANT));
+        assertThat(properties.getCpJwksUri()).isEqualTo(jwksUriFor(CP_TENANT));
+    }
+
+    private static AuthProperties withCp(final AuthMode mode,
+                                         final String cpTenant,
+                                         final String cpAudience,
+                                         final String cpIssuer,
+                                         final String cpJwksUri) {
+        return new AuthProperties(deployed(), mode, TENANT, AUDIENCE, "", "",
+                cpTenant, cpAudience, cpIssuer, cpJwksUri, ROLE, 60, 300);
+    }
+
+    private static String issuerFor(final String tenant) {
+        return "https://login.microsoftonline.com/" + tenant + "/v2.0";
+    }
+
+    private static String jwksUriFor(final String tenant) {
+        return "https://login.microsoftonline.com/" + tenant + "/discovery/v2.0/keys";
+    }
+
     private static AuthProperties properties(final AuthMode mode,
                                              final Environment environment,
                                              final String tenantId,
                                              final String audience,
                                              final String roles,
                                              final long clockSkewSeconds) {
-        return new AuthProperties(environment, mode, tenantId, audience, "", "",
+        return new AuthProperties(environment, mode, tenantId, audience, "", "", "", "", "", "",
                 roles, clockSkewSeconds, 300);
     }
 

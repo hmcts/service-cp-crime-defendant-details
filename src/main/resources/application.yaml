@@ -44,6 +44,11 @@ auth:
   audience: ${AUTH_AUDIENCE:}
   issuer: ${AUTH_ISSUER:}
   jwks-uri: ${AUTH_JWKS_URI:}
+  # CP issuer (optional, AMP-1386): set tenant and audience together, or neither.
+  cp-tenant-id: ${AUTH_CP_TENANT_ID:}
+  cp-audience: ${AUTH_CP_AUDIENCE:}
+  cp-issuer: ${AUTH_CP_ISSUER:}
+  cp-jwks-uri: ${AUTH_CP_JWKS_URI:}
   roles: ${AUTH_ROLES:}
   clock-skew-seconds: ${AUTH_CLOCK_SKEW_SECONDS:60}
   jwks-cache-ttl-seconds: ${AUTH_JWKS_CACHE_TTL_SECONDS:300}
