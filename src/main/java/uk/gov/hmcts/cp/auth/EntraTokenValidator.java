@@ -12,7 +12,6 @@ import com.nimbusds.jwt.proc.BadJWTException;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.BadJOSEException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,8 +19,10 @@ import org.springframework.stereotype.Component;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Validates Microsoft Entra app-only (client credentials) access tokens.
@@ -30,6 +31,8 @@ import java.util.UUID;
  * the gateway never sees: in-cluster callers, a port-forward and a misrouted ingress. "APIM
  * validates it" is not an answer to a missing in-application check.
  *
+ * <p>The token's {@code iss} picks one {@link TrustedIssuer} (primary or CP); the token is validated
+ * against that issuer's tenant, audience and keys only.
  */
 @Component
 @Slf4j
@@ -50,16 +53,31 @@ public class EntraTokenValidator {
     private static final String CLAIM_EXPIRY = "exp";
 
     private final AuthProperties authProperties;
-    private final ConfigurableJWTProcessor<SecurityContext> jwtProcessor;
 
-    public EntraTokenValidator(final AuthProperties authProperties,
-                               final JWKSource<SecurityContext> jwkSource) {
+    /** One processor per trusted issuer, keyed by exact {@code iss}. */
+    private final Map<String, IssuerProcessor> processorsByIssuer;
+
+    private record IssuerProcessor(TrustedIssuer trusted, ConfigurableJWTProcessor<SecurityContext> processor) {
+    }
+
+    private record VerifiedToken(TrustedIssuer trusted, JWTClaimsSet claims) {
+    }
+
+    public EntraTokenValidator(final AuthProperties authProperties, final JwkSourceFactory jwkSources) {
         this.authProperties = authProperties;
+        this.processorsByIssuer = authProperties.getTrustedIssuers().stream()
+                .collect(Collectors.toUnmodifiableMap(TrustedIssuer::issuer,
+                        trusted -> new IssuerProcessor(trusted, processor(trusted, authProperties, jwkSources))));
+    }
 
+    private static ConfigurableJWTProcessor<SecurityContext> processor(final TrustedIssuer trusted,
+                                                                      final AuthProperties properties,
+                                                                      final JwkSourceFactory jwkSources) {
         final DefaultJWTProcessor<SecurityContext> processor = new DefaultJWTProcessor<>();
-        processor.setJWSKeySelector(new JWSVerificationKeySelector<>(PINNED_ALGORITHM, jwkSource));
-        processor.setJWTClaimsSetVerifier(claimsVerifier(authProperties));
-        this.jwtProcessor = processor;
+        processor.setJWSKeySelector(
+                new JWSVerificationKeySelector<>(PINNED_ALGORITHM, jwkSources.forJwksUri(trusted.jwksUri())));
+        processor.setJWTClaimsSetVerifier(claimsVerifier(trusted, properties.getClockSkewSeconds()));
+        return processor;
     }
 
     /**
@@ -70,22 +88,24 @@ public class EntraTokenValidator {
      * @throws TokenValidationException if the token is rejected, carrying only a coarse reason
      */
     public ValidatedCaller validate(final String token) throws TokenValidationException {
-        final JWTClaimsSet claims = verify(token);
-        requireSingleAudience(claims);
+        final VerifiedToken verified = verify(token);
+        final JWTClaimsSet claims = verified.claims();
+        requireSingleAudience(claims, verified.trusted());
         requireAppOnly(claims);
         final UUID clientId = authorisedParty(claims);
         final List<String> roles = requireRole(claims);
-        return new ValidatedCaller(clientId, roles);
+        return new ValidatedCaller(clientId, roles, verified.trusted().name());
     }
 
     /**
      * Runs signature verification and the claims that Nimbus checks natively: audience, exact
      * issuer, required and prohibited claims, and expiry and not-before within the configured skew.
      */
-    private JWTClaimsSet verify(final String token) throws TokenValidationException {
+    private VerifiedToken verify(final String token) throws TokenValidationException {
         final JWT parsed = parse(token);
+        final IssuerProcessor selected = selectByIssuer(parsed);
         try {
-            return jwtProcessor.process(parsed, null);
+            return new VerifiedToken(selected.trusted(), selected.processor().process(parsed, null));
         } catch (BadJWTException e) {
             throw rejected(TokenRejectionReason.CLAIM_VALIDATION_FAILED, e);
         } catch (RemoteKeySourceException e) {
@@ -110,12 +130,31 @@ public class EntraTokenValidator {
     }
 
     /**
+     * Reads {@code iss} before signature verification only to choose the processor, which then
+     * verifies the signature with that issuer's keys and re-checks {@code iss}.
+     */
+    private IssuerProcessor selectByIssuer(final JWT parsed) throws TokenValidationException {
+        final String unverifiedIssuer;
+        try {
+            unverifiedIssuer = parsed.getJWTClaimsSet().getIssuer();
+        } catch (ParseException e) {
+            throw rejected(TokenRejectionReason.MALFORMED_TOKEN, e);
+        }
+        final IssuerProcessor selected = unverifiedIssuer == null ? null : processorsByIssuer.get(unverifiedIssuer);
+        if (selected == null) {
+            throw rejected(TokenRejectionReason.CLAIM_VALIDATION_FAILED, null);
+        }
+        return selected;
+    }
+
+    /**
      * Nimbus accepts an {@code aud} that merely contains this API's audience among others. Entra
      * issues a single-valued {@code aud}, so anything else is rejected rather than tolerated.
      */
-    private void requireSingleAudience(final JWTClaimsSet claims) throws TokenValidationException {
+    private void requireSingleAudience(final JWTClaimsSet claims, final TrustedIssuer trusted)
+            throws TokenValidationException {
         final List<String> audience = claims.getAudience();
-        if (audience.size() != 1 || !audience.getFirst().equals(authProperties.getAudience())) {
+        if (audience.size() != 1 || !trusted.audiences().contains(audience.getFirst())) {
             throw rejected(TokenRejectionReason.CLAIM_VALIDATION_FAILED, null);
         }
     }
@@ -171,19 +210,20 @@ public class EntraTokenValidator {
     /**
      * Builds the claims verifier.
      */
-    private static DefaultJWTClaimsVerifier<SecurityContext> claimsVerifier(final AuthProperties properties) {
+    private static DefaultJWTClaimsVerifier<SecurityContext> claimsVerifier(final TrustedIssuer trusted,
+                                                                         final long clockSkewSeconds) {
         final JWTClaimsSet exactMatch = new JWTClaimsSet.Builder()
-                .issuer(properties.getIssuer())
-                .claim(CLAIM_TENANT_ID, properties.getTenantId())
+                .issuer(trusted.issuer())
+                .claim(CLAIM_TENANT_ID, trusted.tenantId())
                 .claim(CLAIM_VERSION, SUPPORTED_TOKEN_VERSION)
                 .build();
 
         final DefaultJWTClaimsVerifier<SecurityContext> verifier = new DefaultJWTClaimsVerifier<>(
-                Set.of(properties.getAudience()),
+                trusted.audiences(),
                 exactMatch,
                 Set.of(CLAIM_EXPIRY),
                 Set.of(CLAIM_SCOPE));
-        verifier.setMaxClockSkew(Math.toIntExact(properties.getClockSkewSeconds()));
+        verifier.setMaxClockSkew(Math.toIntExact(clockSkewSeconds));
         return verifier;
     }
 

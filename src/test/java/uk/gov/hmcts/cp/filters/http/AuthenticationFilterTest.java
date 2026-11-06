@@ -57,6 +57,8 @@ class AuthenticationFilterTest {
                 .extracting(ValidatedCaller::clientId)
                 .isEqualTo(TestTokens.CLIENT_ID);
         assertThat(counter("auth_tokens_accepted_total")).isEqualTo(1);
+        assertThat(meterRegistry.get("auth_tokens_accepted_total").tag("issuer", "primary").counter().count())
+                .isEqualTo(1);
     }
 
     /** RFC 6750 section 2.1. A case-sensitive match would reject legitimate clients. */
@@ -176,7 +178,7 @@ class AuthenticationFilterTest {
         final AuthProperties properties = TestTokens.properties(mode);
         return new AuthenticationFilter(
                 properties,
-                new EntraTokenValidator(properties, TestTokens.jwkSource()),
+                new EntraTokenValidator(properties, TestTokens.jwkSourceFactory()),
                 new AuthMetrics(meterRegistry),
                 new ObjectMapper(),
                 Mockito.mock(Tracer.class));

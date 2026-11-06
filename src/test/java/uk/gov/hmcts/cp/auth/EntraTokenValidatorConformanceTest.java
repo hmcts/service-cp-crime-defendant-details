@@ -433,7 +433,7 @@ class EntraTokenValidatorConformanceTest {
         @Test
         void the_validator_validates_identically_whatever_the_mode() {
             final EntraTokenValidator observing =
-                    new EntraTokenValidator(TestTokens.properties(AuthMode.OBSERVE), TestTokens.jwkSource());
+                    new EntraTokenValidator(TestTokens.properties(AuthMode.OBSERVE), TestTokens.jwkSourceFactory());
 
             assertThatThrownBy(() -> observing.validate(sign(validClaims().audience(GRAPH_AUDIENCE).build())))
                     .isInstanceOf(TokenValidationException.class);
